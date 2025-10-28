@@ -1,10 +1,10 @@
-package com.sayedhesham.ecommerce;
+package com.sayedhesham.userservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class EcommerceApplicationTests {
+class UserServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

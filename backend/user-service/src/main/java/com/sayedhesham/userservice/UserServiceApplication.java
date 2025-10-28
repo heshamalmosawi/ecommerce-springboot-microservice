@@ -1,4 +1,4 @@
-package com.sayedhesham.ecommerce;
+package com.sayedhesham.userservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,7 @@ import com.netflix.discovery.EurekaClient;
 
 @SpringBootApplication
 @RestController
-public class UserService {
+public class UserServiceApplication {
 
     @Autowired
     @Lazy
@@ -22,7 +22,7 @@ public class UserService {
     private String appName;
 
     public static void main(String[] args) {
-        SpringApplication.run(UserService.class, args);
+        SpringApplication.run(UserServiceApplication.class, args);
     }
 
     @RequestMapping("/greeting")

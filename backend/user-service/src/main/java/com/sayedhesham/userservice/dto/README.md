@@ -1,0 +1,1 @@
+DTO stands for Data Transfer Objects. It represents the structs for tranfer in http requests and responses.
