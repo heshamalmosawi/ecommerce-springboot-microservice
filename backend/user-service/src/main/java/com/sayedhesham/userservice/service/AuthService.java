@@ -48,9 +48,14 @@ public class AuthService {
             throw new RuntimeException("Email already in use");
         }
 
-        if (req.getRole() == null || (!req.getRole().equals("user") && !req.getRole().equals("admin"))) {
-            throw new RuntimeException("Invalid role. Must be 'user' or 'admin'");
+        if (req.getRole() == null || (!req.getRole().equals("client") && !req.getRole().equals("seller"))) {
+            throw new RuntimeException("Invalid role. Must be 'client' or 'sellers'");
         }
+
+        if (!req.getRole().equals("seller") && (req.getAvatar_b64() != null && !req.getAvatar_b64().isEmpty())) {
+            throw new RuntimeException("Only sellers can have an avatar");
+        }
+        
         User user = User.builder()
                 .name(req.getName())
                 .email(req.getEmail())

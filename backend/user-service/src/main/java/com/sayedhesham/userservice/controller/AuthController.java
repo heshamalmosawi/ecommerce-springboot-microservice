@@ -10,19 +10,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.userservice.dto.LoginRequest;
 import com.sayedhesham.userservice.dto.RegisterRequest;
-import com.sayedhesham.userservice.service.UserService;
+import com.sayedhesham.userservice.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         try {
-            userService.registerUser(request);
+            authService.registerUser(request);
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
@@ -32,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) {
         try {
-            String token = userService.loginUser(request);
+            String token = authService.loginUser(request);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());

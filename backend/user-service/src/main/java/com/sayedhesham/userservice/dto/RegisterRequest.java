@@ -18,5 +18,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank
-    private String role; // 'user' or 'admin'
+    private String role; // 'client' or 'sellers'
+
+    private String avatar_b64; // Optional
 }
