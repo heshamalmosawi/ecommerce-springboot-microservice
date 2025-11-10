@@ -20,5 +20,5 @@ public class RegisterRequest {
     @NotBlank
     private String role; // 'client' or 'sellers'
 
-    private String avatar_b64; // Optional
+    private String avatar_b64; // Optional - will be processed via Kafka
 }

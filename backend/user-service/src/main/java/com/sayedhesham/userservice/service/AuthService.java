@@ -14,10 +14,12 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
+    private final AvatarEventService avatarEventService;
 
-    public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder, AvatarEventService avatarEventService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
+        this.avatarEventService = avatarEventService;
     }
 
     public boolean isEmailTaken(String email) {
@@ -55,7 +57,7 @@ public class AuthService {
         if (!req.getRole().equals("seller") && (req.getAvatar_b64() != null && !req.getAvatar_b64().isEmpty())) {
             throw new RuntimeException("Only sellers can have an avatar");
         }
-        
+
         User user = User.builder()
                 .name(req.getName())
                 .email(req.getEmail())
@@ -63,7 +65,13 @@ public class AuthService {
                 .role(req.getRole())
                 .build();
 
-        this.userRepo.save(user);
+        User savedUser = this.userRepo.save(user);
+
+        // Publish avatar upload event if seller has avatar
+        if (req.getRole().equals("seller") && req.getAvatar_b64() != null && !req.getAvatar_b64().isEmpty()) {
+            String contentType = "image/jpeg"; // Default, could be detected from base64
+            avatarEventService.publishAvatarUploadEvent(savedUser.getId(), req.getAvatar_b64(), contentType);
+        }
     }
 
     public String loginUser(LoginRequest req) {
