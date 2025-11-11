@@ -13,12 +13,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sayedhesham.mediaservice.model.Media;
 import com.sayedhesham.mediaservice.repository.MediaRepository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -89,6 +89,9 @@ public class AvatarProcessingService {
     }
 
     private String processAvatarData(String userId, String base64Data, String contentType) throws IOException {
+        // Calculate file size
+        long fileSizeBytes = calculateFileSize(base64Data);
+        
         // Save media record to database with base64 data
         Media media = Media.builder()
                 .id(UUID.randomUUID().toString())
@@ -96,6 +99,7 @@ public class AvatarProcessingService {
                 .contentType(contentType)
                 .mediaType("avatar")
                 .ownerId(userId)
+                .fileSizeBytes(fileSizeBytes)
                 .uploadTimestamp(System.currentTimeMillis())
                 .build();
 
@@ -150,5 +154,14 @@ public class AvatarProcessingService {
         private String mediaType;
         private String action;
         private Long timestamp;
+    }
+
+    private long calculateFileSize(String base64Data) {
+        // Remove data URL prefix if present
+        String cleanBase64 = base64Data.contains(",") ? 
+                base64Data.split(",")[1] : base64Data;
+        
+        // Calculate actual file size from base64
+        return (cleanBase64.length() * 3) / 4;
     }
 }

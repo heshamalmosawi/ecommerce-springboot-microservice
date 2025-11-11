@@ -90,6 +90,9 @@ public class ProductImageProcessingService {
     }
 
     private String processProductImageData(String productId, String base64Data, String contentType) throws IOException {
+        // Calculate file size
+        long fileSizeBytes = calculateFileSize(base64Data);
+        
         // Save media record to database with base64 data
         Media media = Media.builder()
                 .id(UUID.randomUUID().toString())
@@ -97,6 +100,8 @@ public class ProductImageProcessingService {
                 .contentType(contentType)
                 .mediaType("product_image")
                 .ownerId(productId)
+                .fileName(generateFileName(contentType))
+                .fileSizeBytes(fileSizeBytes)
                 .uploadTimestamp(System.currentTimeMillis())
                 .build();
 
@@ -168,5 +173,26 @@ public class ProductImageProcessingService {
         private String mediaType;
         private String action;
         private Long timestamp;
+    }
+
+    private long calculateFileSize(String base64Data) {
+        // Remove data URL prefix if present
+        String cleanBase64 = base64Data.contains(",") ? 
+                base64Data.split(",")[1] : base64Data;
+        
+        // Calculate actual file size from base64
+        return (cleanBase64.length() * 3) / 4;
+    }
+
+    private String generateFileName(String contentType) {
+        String extension = switch (contentType.toLowerCase()) {
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/gif" -> ".gif";
+            case "image/webp" -> ".webp";
+            default -> ".jpg";
+        };
+        
+        return "product_image_" + System.currentTimeMillis() + extension;
     }
 }

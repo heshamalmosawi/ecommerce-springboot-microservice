@@ -52,11 +52,13 @@ public class ProductMediaEventConsumerService {
                 log.info("Added image media ID {} to product: {}", event.getMediaId(), event.getProductId());
             }
             case "updated" -> {
-                // For updates, we could replace the first image or add as new
-                if (product.getImageMediaIds() == null) {
+                // For updates, replace the first image or add if list is empty
+                if (product.getImageMediaIds() == null || product.getImageMediaIds().isEmpty()) {
                     product.setImageMediaIds(new java.util.ArrayList<>());
+                    product.getImageMediaIds().add(event.getMediaId());
+                } else {
+                    product.getImageMediaIds().set(0, event.getMediaId());
                 }
-                product.getImageMediaIds().add(event.getMediaId());
                 log.info("Updated product {} with new image media ID: {}", event.getProductId(), event.getMediaId());
             }
             case "deleted" -> {
