@@ -12,7 +12,7 @@ import com.netflix.discovery.EurekaClient;
 
 @SpringBootApplication
 @RestController
-public class MediaService {
+public class MediaServiceApplication {
 
     @Autowired
     @Lazy
@@ -22,7 +22,7 @@ public class MediaService {
     private String appName;
 
     public static void main(String[] args) {
-        SpringApplication.run(MediaService.class, args);
+        SpringApplication.run(MediaServiceApplication.class, args);
     }
 
     @RequestMapping("/greeting")
