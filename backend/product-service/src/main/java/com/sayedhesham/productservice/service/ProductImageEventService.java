@@ -42,9 +42,9 @@ public class ProductImageEventService {
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageUploadTopic, productId, eventJson);
-            System.out.println("Published product image upload event for product: " + productId);
+            log.info("Published product image upload event for product: {}", productId);
         } catch (JsonProcessingException e) {
-            System.err.println("Error publishing product image upload event for product: " + productId);
+            log.error("Error publishing product image upload event for product: {}", productId, e);
             throw new RuntimeException("Failed to publish product image upload event", e);
         }
     }
@@ -60,9 +60,9 @@ public class ProductImageEventService {
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageUpdateTopic, productId, eventJson);
-            System.out.println("Published product image update event for product: " + productId);
+            log.info("Published product image update event for product: {}", productId);
         } catch (JsonProcessingException e) {
-            System.err.println("Error publishing product image update event for product: " + productId);
+            log.error("Error publishing product image update event for product: {}", productId, e);
             throw new RuntimeException("Failed to publish product image update event", e);
         }
     }
@@ -77,9 +77,9 @@ public class ProductImageEventService {
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageDeleteTopic, productId, eventJson);
-            System.out.println("Published product image delete event for product: " + productId + ", imageMediaId: " + imageMediaId);
+            log.info("Published product image delete event for product: {}, imageMediaId: {}", productId, imageMediaId);
         } catch (JsonProcessingException e) {
-            System.err.println("Error publishing product image delete event for product: " + productId);
+            log.error("Error publishing product image delete event for product: {}", productId, e);
             throw new RuntimeException("Failed to publish product image delete event", e);
         }
     }

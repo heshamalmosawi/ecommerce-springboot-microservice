@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.repository.ProductRepository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +27,10 @@ public class ProductMediaEventConsumerService {
     public void handleMediaProcessedEvent(String eventJson) {
         try {
             MediaProcessedEvent event = objectMapper.readValue(eventJson, MediaProcessedEvent.class);
+            if (event.getProductId() == null) {
+                log.warn("Received media processed event with null productId: {}", eventJson);
+                return;
+            }
             log.info("Processing media processed event for product: {}, action: {}", event.getProductId(), event.getAction());
 
             if ("product_image".equals(event.getMediaType())) {

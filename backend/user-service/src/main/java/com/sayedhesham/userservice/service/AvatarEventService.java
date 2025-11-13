@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,8 +81,8 @@ public class AvatarEventService {
         }
     }
 
-    @lombok.Data
-    @lombok.Builder
+    @Data
+    @Builder
     public static class AvatarUploadEvent {
         private String userId;
         private String avatarData;
@@ -88,8 +90,8 @@ public class AvatarEventService {
         private Long timestamp;
     }
 
-    @lombok.Data
-    @lombok.Builder
+    @Data
+    @Builder
     public static class AvatarDeleteEvent {
         private String userId;
         private Long timestamp;

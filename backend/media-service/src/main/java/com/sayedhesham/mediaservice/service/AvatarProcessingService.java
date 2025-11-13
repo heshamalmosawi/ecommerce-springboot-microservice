@@ -145,8 +145,8 @@ public class AvatarProcessingService {
         private Long timestamp;
     }
 
-    @lombok.Data
-    @lombok.Builder
+    @Data
+    @Builder
     public static class MediaProcessedEvent {
 
         private String userId;

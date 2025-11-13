@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sayedhesham.mediaservice.model.Media;
 import com.sayedhesham.mediaservice.service.MediaService;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,7 +141,7 @@ public class MediaController {
     }
 
     @Data
-    @lombok.Builder
+    @Builder
     public static class MediaResponse {
         private String id;
         private String base64Data;
