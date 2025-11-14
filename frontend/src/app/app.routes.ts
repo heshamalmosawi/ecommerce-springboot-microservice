@@ -1,15 +1,22 @@
 import { Routes } from '@angular/router';
-import { Layout } from './components/layout/layout';
+import { LayoutComponent } from './components/layout/layout';
 import { Home } from './components/home/home';
+import { AuthComponent } from './components/auth/auth';
+import { LoginComponent } from './components/login/login';
+import { RegisterComponent } from './components/register/register';
 
 export const routes: Routes = [
   {
     path: '',
-    component: Layout,
+    component: LayoutComponent,
     children: [
       {
         path: '',
         component: Home
+      },
+      {
+        path: 'auth',
+        component: AuthComponent
       }
     ]
   }

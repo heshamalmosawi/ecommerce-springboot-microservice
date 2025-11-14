@@ -11,6 +11,20 @@
       <a routerLink="/products" class="nav-link">Products</a>
       <a routerLink="/about" class="nav-link">About</a>
       <a routerLink="/contact" class="nav-link">Contact</a>
+      
+      <!-- Show user info when authenticated -->
+      @if (isAuthenticated() && currentUser) {
+        <div class="user-menu">
+          <span class="user-name">{{ currentUser.name || currentUser.email }}</span>
+          <span class="user-role">{{ currentUser.role }}</span>
+          <button (click)="logout()" class="logout-btn">Sign Out</button>
+        </div>
+      }
+      
+      <!-- Show sign in button when not authenticated -->
+      @if (!isAuthenticated()) {
+        <a routerLink="/auth" class="login-btn">Sign In</a>
+      }
     </div>
   </div>
 </header>

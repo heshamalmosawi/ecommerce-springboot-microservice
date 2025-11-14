@@ -1,0 +1,27 @@
+<div class="auth-container">
+  <div class="auth-wrapper">
+    <div class="auth-sidebar">
+      <div class="sidebar-content">
+        <div class="sidebar-logo">
+          <img src="bahrain_no_hawar_sitra.svg" alt="eSouq">
+          <span>eSouq</span>
+        </div>
+        <h2 class="sidebar-title">Welcome to Bahrain's Premier Marketplace</h2>
+        <p class="sidebar-description">
+          Connect with trusted local sellers and discover amazing products from across the Kingdom.
+        </p>
+      </div>
+    </div>
+    
+    <div class="auth-main">
+      <div class="auth-content">
+        @if (showLogin) {
+          <app-login (switchToRegister)="switchToRegister()"></app-login>
+        }
+        @if (!showLogin) {
+          <app-register (switchToLogin)="switchToLogin()"></app-register>
+        }
+      </div>
+    </div>
+  </div>
+</div>

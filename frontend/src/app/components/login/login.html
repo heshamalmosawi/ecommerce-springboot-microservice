@@ -1,0 +1,68 @@
+<div class="login-container">
+  <div class="login-header">
+    <h1 class="login-title">Welcome Back</h1>
+    <p class="login-subtitle">Sign in to your account to continue</p>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <div class="input-wrapper">
+        <span class="input-icon">📧</span>
+        <input id="email" type="email" formControlName="email" class="form-control" placeholder="you@example.com"
+          [ngClass]="{ 'is-invalid': email?.invalid && (email?.dirty || email?.touched) }" />
+      </div>
+      @if (email?.invalid && (email?.dirty || email?.touched)) {
+        <div class="invalid-feedback">
+          <span>⚠️</span>
+          @if (email?.errors?.['required']) {
+            <span>Email is required</span>
+          }
+          @if (email?.errors?.['email']) {
+            <span>Please enter a valid email</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <div class="input-wrapper">
+        <span class="input-icon">🔒</span>
+        <input id="password" type="password" formControlName="password" class="form-control"
+          placeholder="Enter your password"
+          [ngClass]="{ 'is-invalid': password?.invalid && (password?.dirty || password?.touched) }" />
+      </div>
+      @if (password?.invalid && (password?.dirty || password?.touched)) {
+        <div class="invalid-feedback">
+          <span>⚠️</span>
+          @if (password?.errors?.['required']) {
+            <span>Password is required</span>
+          }
+          @if (password?.errors?.['minlength']) {
+            <span>Password must be at least 6 characters</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (errorMessage) {
+      <div class="error-message">
+        ⚠️ {{ errorMessage }}
+      </div>
+    }
+
+    <button type="submit" class="login-btn" [disabled]="loginForm.invalid || isLoading">
+      @if (!isLoading) {
+        <span>Sign In</span>
+      }
+      @if (isLoading) {
+        <span>Signing in...</span>
+      }
+    </button>
+  </form>
+
+  <div class="login-footer">
+    <p>Don't have an account? <a href="javascript:void(0)" (click)="switchToRegister.emit()">Sign up</a></p>
+  </div>
+</div>

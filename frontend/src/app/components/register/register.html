@@ -1,0 +1,140 @@
+<div class="register-container">
+  <div class="register-header">
+    <h1 class="register-title">Create Account</h1>
+    <p class="register-subtitle">Join our community and start shopping or selling today</p>
+  </div>
+
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input id="name" type="text" formControlName="name" class="form-control" placeholder="John Doe"
+            [ngClass]="{ 'is-invalid': name?.invalid && (name?.dirty || name?.touched) }" />
+        </div>
+        @if (name?.invalid && (name?.dirty || name?.touched)) {
+        <div class="invalid-feedback">
+          <span>⚠️</span>
+          @if (name?.errors?.['required']) {
+          <span>Name is required</span>
+          }
+        </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="role">Account Type</label>
+        <select id="role" formControlName="role" class="form-control">
+          <option value="client">🛍️ Client</option>
+          <option value="seller">🏪 Seller</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email Address</label>
+      <div class="input-wrapper">
+        <span class="input-icon">📧</span>
+        <input id="email" type="email" formControlName="email" class="form-control" placeholder="you@example.com"
+          [ngClass]="{ 'is-invalid': email?.invalid && (email?.dirty || email?.touched) }" />
+      </div>
+      @if (email?.invalid && (email?.dirty || email?.touched)) {
+      <div class="invalid-feedback">
+        <span>⚠️</span>
+        @if (email?.errors?.['required']) {
+        <span>Email is required</span>
+        }
+        @if (email?.errors?.['email']) {
+        <span>Please enter a valid email</span>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input id="password" type="password" formControlName="password" class="form-control"
+            placeholder="Min 6 characters"
+            [ngClass]="{ 'is-invalid': password?.invalid && (password?.dirty || password?.touched) }" />
+        </div>
+        @if (password?.invalid && (password?.dirty || password?.touched)) {
+        <div class="invalid-feedback">
+          <span>⚠️</span>
+          @if (password?.errors?.['required']) {
+          <span>Password is required</span>
+          }
+          @if (password?.errors?.['minlength']) {
+          <span>Password must be at least 6 characters</span>
+          }
+        </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔐</span>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" class="form-control"
+            placeholder="Confirm password"
+            [ngClass]="{ 'is-invalid': confirmPassword?.invalid && (confirmPassword?.dirty || confirmPassword?.touched) }" />
+        </div>
+        @if (confirmPassword?.invalid && (confirmPassword?.dirty || confirmPassword?.touched)) {
+        <div class="invalid-feedback">
+          <span>⚠️</span>
+          @if (confirmPassword?.errors?.['required']) {
+          <span>Please confirm your password</span>
+          }
+          @if (registerForm.errors?.['passwordMismatch']) {
+          <span>Passwords do not match</span>
+          }
+        </div>
+        }
+      </div>
+    </div>
+
+    @if (registerForm.get('role')?.value === 'seller') {
+    <div class="form-group">
+      <label for="avatar">Profile Picture (Optional)</label>
+      <div class="avatar-upload" [ngClass]="{ 'has-image': previewUrl }">
+        <input id="avatar" type="file" accept="image/*" (change)="onFileSelected($event)" class="form-control"
+          style="display: none;" />
+        @if (!previewUrl) {
+        <div (click)="triggerFileInput()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click to upload profile picture</div>
+          <div class="upload-hint">PNG, JPG up to 10MB</div>
+        </div>
+        }
+        @if (previewUrl) {
+        <div class="avatar-preview">
+          <img [src]="previewUrl" alt="Avatar preview" class="preview-image" />
+        </div>
+        }
+      </div>
+    </div>
+    }
+    
+    @if (errorMessage) {
+    <div class="error-message">
+      ⚠️ {{ errorMessage }}
+    </div>
+    }
+
+    <button type="submit" class="register-btn" [disabled]="registerForm.invalid || isLoading">
+      @if (!isLoading) {
+      <span>Create Account</span>
+      }
+      @if (isLoading) {
+      <span>Creating account...</span>
+      }
+    </button>
+  </form>
+
+  <div class="register-footer">
+    <p>Already have an account? <a href="javascript:void(0)" (click)="switchToLogin.emit()">Sign in</a></p>
+  </div>
+</div>
