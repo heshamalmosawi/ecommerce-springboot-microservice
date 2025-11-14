@@ -9,11 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.userservice.dto.LoginRequest;
+import com.sayedhesham.userservice.dto.LoginResponse;
 import com.sayedhesham.userservice.dto.RegisterRequest;
 import com.sayedhesham.userservice.service.AuthService;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 @RestController
 @RequestMapping("/auth")
@@ -36,16 +34,13 @@ public class AuthController {
     public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
             String token = authService.loginUser(request);
-            return ResponseEntity.ok(new LoginResponse(token, 3 * 24 * 60 * 60)); // 3 days in seconds
+            return ResponseEntity.ok(LoginResponse.builder()
+                    .token(token)
+                    .expiresAt(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 3) // 3 days in milliseconds
+                    .build());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
         }
     }
 
-    @Data
-    @AllArgsConstructor
-    private static class LoginResponse {
-        private String token;
-        private long expiresIn;
-    }
 }
