@@ -45,4 +45,31 @@ public class JwtService {
         }
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (JwtException e) {
+            return true;
+        }
+    }
+
+    public Date getExpirationDate(String token) throws JwtException {
+        return extractAllClaims(token).getExpiration();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public long getTimeUntilExpiration(String token) throws JwtException {
+        Date expirationDate = getExpirationDate(token);
+        return expirationDate.getTime() - System.currentTimeMillis();
+    }
+
 }
