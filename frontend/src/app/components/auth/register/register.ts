@@ -2,7 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService, RegisterRequest } from '../../services/auth';
+import { AuthService, RegisterRequest } from '../../../services/auth';
 
 @Component({
   selector: 'app-register',
@@ -85,9 +85,9 @@ export class RegisterComponent implements OnInit {
     const registerData: RegisterRequest = formData;
 
     this.authService.register(registerData).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading = false;
-        this.router.navigate(['/auth/login']);
+        this.switchToLogin.emit();
       },
       error: (error) => {
         this.isLoading = false;

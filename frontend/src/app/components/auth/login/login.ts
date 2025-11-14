@@ -2,7 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService, LoginRequest } from '../../services/auth';
+import { AuthService, LoginRequest } from '../../../services/auth';
 
 @Component({
   selector: 'app-login',
@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error || 'Login failed. Please try again.';
+        this.errorMessage = error.error?.message || error.message || error.error || 'Login failed. Please try again.';
       }
     });
   }
