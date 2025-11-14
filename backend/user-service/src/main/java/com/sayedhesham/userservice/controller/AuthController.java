@@ -12,6 +12,9 @@ import com.sayedhesham.userservice.dto.LoginRequest;
 import com.sayedhesham.userservice.dto.RegisterRequest;
 import com.sayedhesham.userservice.service.AuthService;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -30,12 +33,19 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
             String token = authService.loginUser(request);
-            return ResponseEntity.ok(token);
+            return ResponseEntity.ok(new LoginResponse(token, 3 * 24 * 60 * 60)); // 3 days in seconds
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class LoginResponse {
+        private String token;
+        private long expiresIn;
     }
 }

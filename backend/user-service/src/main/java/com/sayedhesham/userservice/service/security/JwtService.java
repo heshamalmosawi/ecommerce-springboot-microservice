@@ -22,12 +22,13 @@ public class JwtService {
 
     public static String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getEmail())
-                .claim("role", user.getRole())
-                .claim("id", user.getId())
-                .setIssuedAt(new Date())
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+            .setSubject(user.getEmail())
+            .claim("role", user.getRole())
+            .claim("id", user.getId())
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 3)) // 3 days
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public Claims extractAllClaims(String token) throws JwtException {
