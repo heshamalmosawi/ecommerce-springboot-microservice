@@ -33,11 +33,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
-            String token = authService.loginUser(request);
-            return ResponseEntity.ok(LoginResponse.builder()
-                    .token(token)
-                    .expiresAt(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 3) // 3 days in milliseconds
-                    .build());
+            LoginResponse resp = authService.loginUser(request);
+            return ResponseEntity.ok(resp);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
         }

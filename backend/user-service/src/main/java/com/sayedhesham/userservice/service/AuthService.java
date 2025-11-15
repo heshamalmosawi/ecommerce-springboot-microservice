@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.sayedhesham.userservice.dto.LoginRequest;
+import com.sayedhesham.userservice.dto.LoginResponse;
 import com.sayedhesham.userservice.dto.RegisterRequest;
 import com.sayedhesham.userservice.model.User;
 import com.sayedhesham.userservice.repository.UserRepository;
@@ -11,6 +12,8 @@ import com.sayedhesham.userservice.service.security.JwtService;
 
 @Service
 public class AuthService {
+
+    private static final long TOKEN_EXPIRATION_MS = 1000L * 60 * 60 * 24 * 3; // 3 days in milliseconds
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
@@ -74,12 +77,16 @@ public class AuthService {
         }
     }
 
-    public String loginUser(LoginRequest req) {
+    public LoginResponse loginUser(LoginRequest req) {
         User user = userRepo.findByEmail(req.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
-        return JwtService.generateToken(user);
+        return LoginResponse.builder()
+                .token(JwtService.generateToken(user))
+                .expiresAt(System.currentTimeMillis() + TOKEN_EXPIRATION_MS)
+                .name(user.getName())
+                .build();
     }
 }
