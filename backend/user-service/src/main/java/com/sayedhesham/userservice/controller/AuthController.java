@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.userservice.dto.LoginRequest;
+import com.sayedhesham.userservice.dto.LoginResponse;
 import com.sayedhesham.userservice.dto.RegisterRequest;
 import com.sayedhesham.userservice.service.AuthService;
 
@@ -30,12 +31,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Object> login(@RequestBody LoginRequest request) {
         try {
-            String token = authService.loginUser(request);
-            return ResponseEntity.ok(token);
+            LoginResponse resp = authService.loginUser(request);
+            return ResponseEntity.ok(resp);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
         }
     }
+
 }

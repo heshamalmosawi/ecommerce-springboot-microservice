@@ -22,12 +22,14 @@ public class JwtService {
 
     public static String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getEmail())
-                .claim("role", user.getRole())
-                .claim("id", user.getId())
-                .setIssuedAt(new Date())
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+            .setSubject(user.getEmail())
+            .claim("name", user.getName())
+            .claim("role", user.getRole())
+            .claim("id", user.getId())
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 3)) // 3 days
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public Claims extractAllClaims(String token) throws JwtException {
@@ -42,6 +44,33 @@ public class JwtService {
             // catch null, wrong token, expired token
             throw new JwtException(e.getMessage());
         }
+    }
+
+    public boolean isTokenExpired(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (JwtException e) {
+            return true;
+        }
+    }
+
+    public Date getExpirationDate(String token) throws JwtException {
+        return extractAllClaims(token).getExpiration();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public long getTimeUntilExpiration(String token) throws JwtException {
+        Date expirationDate = getExpirationDate(token);
+        return expirationDate.getTime() - System.currentTimeMillis();
     }
 
 }

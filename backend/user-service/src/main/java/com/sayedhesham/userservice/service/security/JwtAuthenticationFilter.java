@@ -51,8 +51,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("JwtAuthenticationFilter: Found Authorization header, validating token...");
 
         String token = authHeader.substring(7);
-        try {
+        
+        // Validate token first
+        if (!jwtService.validateToken(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            if (jwtService.isTokenExpired(token)) {
+                response.getWriter().write("Token has expired. Please login again.");
+            } else {
+                response.getWriter().write("Invalid token");
+            }
+            return;
+        }
 
+        try {
             // Extract claims (like email and role) from the token
             var claims = jwtService.extractAllClaims(token);
             String email = claims.getSubject();
@@ -72,7 +83,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             System.out.println("\n\n\n\nInvalid or expired token: " + e.getMessage());
-            response.getWriter().write("Invalid or expired token");
+            
+            // Check if specifically expired
+            if (e.getMessage().contains("expired")) {
+                response.getWriter().write("Token has expired. Please login again.");
+            } else {
+                response.getWriter().write("Invalid token: " + e.getMessage());
+            }
             return;
         }
         System.err.println("JwtAuthenticationFilter: Token is valid, proceeding with request...");

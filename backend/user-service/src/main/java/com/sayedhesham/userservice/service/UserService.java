@@ -17,23 +17,30 @@ public class UserService {
         this.userRepo = userRepository;
     }
 
-    public List<User> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         return userRepo.findAll()
                 .stream()
-                .peek(user -> user.setPassword(null)) // hide password
+                .map(user -> UserDTO.builder()
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build())
                 .toList();
     }
 
-    public User getById(String id) {
-        return userRepo.findById(id)
-                .map(user -> {
-                    user.setPassword(null);
-                    return user;
-                })
+    public UserDTO getById(String id) {
+        User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return UserDTO.builder()
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .avatarMediaId(user.getAvatarMediaId())
+                .build();
     }
 
-    public User update(String id, UserDTO user) {
+    public UserDTO update(String id, UserDTO user) {
         User existingUser = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -53,8 +60,12 @@ public class UserService {
         }
 
         User updatedUser = userRepo.save(existingUser);
-        updatedUser.setPassword(null);
-        return updatedUser;
+        return UserDTO.builder()
+                .name(updatedUser.getName())
+                .email(updatedUser.getEmail())
+                .role(updatedUser.getRole())
+                .avatarMediaId(updatedUser.getAvatarMediaId())
+                .build();
     }
 
     public void delete(String id) {
