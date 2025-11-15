@@ -50,7 +50,13 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || error.message || error.error || 'Login failed. Please try again.';
+        if (error.status === 401) {
+          this.errorMessage = 'Invalid email or password. Please try again.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Please check your input and try again.';
+        } else {
+          this.errorMessage = error.error?.message || error.message || 'Login failed. Please try again.';
+        }
       }
     });
   }

@@ -33,12 +33,12 @@ export class RegisterComponent implements OnInit {
     }, { validators: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
-    
+
     if (password && confirmPassword && password.value !== confirmPassword.value) {
       return { passwordMismatch: true };
     }
@@ -91,7 +91,13 @@ export class RegisterComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error || 'Registration failed. Please try again.';
+        if (error.status === 400) {
+          this.errorMessage = error.error?.message || 'Invalid input. Please check all fields and try again.';
+        } else if (error.status === 409) {
+          this.errorMessage = 'Email already exists. Please use a different email or login.';
+        } else {
+          this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+        }
       }
     });
   }

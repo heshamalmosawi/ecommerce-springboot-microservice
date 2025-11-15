@@ -12,17 +12,15 @@
       <a routerLink="/about" class="nav-link">About</a>
       <a routerLink="/contact" class="nav-link">Contact</a>
       
-      <!-- Show user info when authenticated -->
       @if (isAuthenticated() && currentUser) {
         <div class="user-menu">
-          <span class="user-name">{{ currentUser.name || currentUser.email }}</span>
-          <span class="user-role">{{ currentUser.role }}</span>
+          <div class="user-info">
+            <span class="user-name">{{ currentUser.name || currentUser.email || "User" }}</span>
+            <span class="user-role">{{ currentUser.role }}</span>
+          </div>
           <button (click)="logout()" class="logout-btn">Sign Out</button>
         </div>
-      }
-      
-      <!-- Show sign in button when not authenticated -->
-      @if (!isAuthenticated()) {
+      } @else {
         <a routerLink="/auth" class="login-btn">Sign In</a>
       }
     </div>

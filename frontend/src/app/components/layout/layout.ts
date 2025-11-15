@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../services/auth';
 
@@ -12,7 +12,7 @@ import { AuthService, User } from '../../services/auth';
 export class LayoutComponent implements OnInit {
   currentUser: User | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.authService.getCurrentUser().subscribe(user => {
@@ -22,7 +22,7 @@ export class LayoutComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
-    window.location.reload(); // Force reload to update UI
+    this.router.navigate(['/auth']);
   }
 
   isAuthenticated(): boolean {

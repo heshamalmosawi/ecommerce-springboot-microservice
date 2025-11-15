@@ -9,7 +9,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Skip adding token to auth endpoints
+  // Skip adding token to auth endpoints (but not authenticate)
   const authEndpoints = ['/auth/login', '/auth/register'];
   const isAuthEndpoint = authEndpoints.some(endpoint => req.url.includes(endpoint));
 

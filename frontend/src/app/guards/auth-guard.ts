@@ -11,9 +11,9 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Redirect to login page with return URL
-  router.navigate(['/auth/login'], { 
-    queryParams: { returnUrl: state.url } 
-  });
+  // TODO: ?? Redirect to login page with return URL
+  // router.navigate(['/auth/login'], { 
+  //   queryParams: { returnUrl: state.url } 
+  // });
   return false;
 };
