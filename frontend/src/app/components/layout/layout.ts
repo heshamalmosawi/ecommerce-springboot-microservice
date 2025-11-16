@@ -28,4 +28,12 @@ export class LayoutComponent implements OnInit {
   isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
   }
+
+  isSeller(): boolean {
+    return this.authService.hasRole('seller');
+  }
+
+  navigateToAddProduct(): void {
+    this.router.navigate(['/products/add']);
+  }
 }
