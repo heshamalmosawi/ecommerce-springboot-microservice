@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ProductService, CreateProductResponse } from '../../services/product';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-add-product',
@@ -17,13 +19,15 @@ export class AddProductComponent {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private productService: ProductService,
+    private authService: AuthService
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       price: ['', [Validators.required, Validators.min(0.01)]],
-      stock: ['', [Validators.required, Validators.min(1)]]
+      quantity: ['', [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -68,7 +72,7 @@ export class AddProductComponent {
     this.imagePreviews.splice(index, 1);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       return;
@@ -79,28 +83,62 @@ export class AddProductComponent {
       return;
     }
 
+    // Check if user has seller role
+    if (!this.authService.hasRole('seller')) {
+      alert('Only sellers can add products');
+      return;
+    }
+
     this.isSubmitting = true;
     
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append('name', this.productForm.value.name);
-    formData.append('description', this.productForm.value.description);
-    formData.append('price', this.productForm.value.price);
-    formData.append('stock', this.productForm.value.stock);
-    
-    this.selectedFiles.forEach((file, index) => {
-      formData.append(`images[${index}]`, file);
-    });
-    
-    // TODO: Implement actual product creation logic with file upload
-    console.log('Product data:', this.productForm.value);
-    console.log('Files to upload:', this.selectedFiles);
-    
-    setTimeout(() => {
+    try {
+      // Convert all images to base64
+      const imageBase64Array: string[] = [];
+      for (const file of this.selectedFiles) {
+        const base64 = await this.convertFileToBase64(file);
+        imageBase64Array.push(base64);
+      }
+      
+      // Create product data with images
+      const productData = {
+        name: this.productForm.value.name,
+        description: this.productForm.value.description,
+        price: parseFloat(this.productForm.value.price),
+        quantity: parseInt(this.productForm.value.quantity, 10),
+        images: imageBase64Array
+      };
+      
+      // Create product with images
+      this.productService.createProductWithImages(productData).subscribe({
+        next: (createdProduct: CreateProductResponse) => {
+          console.log('Product created successfully:', createdProduct);
+          this.isSubmitting = false;
+          // Navigate back to dashboard or products list
+          this.router.navigate(['/']);
+        },
+        error: (error: any) => {
+          console.error('Error creating product:', error);
+          alert(`Failed to create product: ${error.message}`);
+          this.isSubmitting = false;
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error processing images:', error);
+      alert('Failed to process images. Please try again.');
       this.isSubmitting = false;
-      // Navigate back to dashboard or products list
-      this.router.navigate(['/']);
-    }, 2000);
+    }
+  }
+
+  private convertFileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result as string);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   cancel(): void {

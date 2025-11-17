@@ -1,5 +1,8 @@
 package com.sayedhesham.productservice.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
@@ -7,17 +10,17 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class MediaServiceClient {
 
-    private final RestTemplate restTemplate;
+    private static final Logger log = LoggerFactory.getLogger(MediaServiceClient.class);
 
-    private final DiscoveryClient discoveryClient;
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
     public String getMediaBase64(String mediaId) {
         try {

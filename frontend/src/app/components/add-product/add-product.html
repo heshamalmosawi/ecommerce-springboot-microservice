@@ -52,17 +52,17 @@
         </div>
 
         <div class="form-group">
-          <label for="stock">Stock Quantity *</label>
+          <label for="quantity">Stock Quantity *</label>
           <input 
-            id="stock" 
+            id="quantity" 
             type="number" 
-            min="1"
-            formControlName="stock" 
+            min="0"
+            formControlName="quantity" 
             placeholder="1"
-            [class.error]="productForm.get('stock')?.invalid && productForm.get('stock')?.touched"
+            [class.error]="productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched"
           >
-          @if (productForm.get('stock')?.invalid && productForm.get('stock')?.touched) {
-            <span class="error-message">Stock must be at least 1</span>
+          @if (productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched) {
+            <span class="error-message">Stock must be at least 0</span>
           }
         </div>
       </div>
