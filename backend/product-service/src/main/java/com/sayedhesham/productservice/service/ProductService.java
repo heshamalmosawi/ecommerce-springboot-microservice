@@ -1,5 +1,6 @@
 package com.sayedhesham.productservice.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -17,10 +18,12 @@ public class ProductService {
 
     private final ProductRepository prodRepo;
     private final UserRepository userRepo;
+    private final ProductImageEventService productImageEventService;
 
-    public ProductService(ProductRepository prodRepository, UserRepository userRepository) {
+    public ProductService(ProductRepository prodRepository, UserRepository userRepository, ProductImageEventService productImageEventService) {
         this.prodRepo = prodRepository;
         this.userRepo = userRepository;
+        this.productImageEventService = productImageEventService;
     }
 
     public List<Product> getAll() {
@@ -52,15 +55,28 @@ public class ProductService {
             throw new IllegalArgumentException("User does not exist");
         }
 
+        // Create product first without images
         Product product = Product.builder()
-                .name(productDTO.getName())
-                .description(productDTO.getDescription())
-                .price(productDTO.getPrice())
-                .quantity(productDTO.getQuantity())
-                .userId(currentUserId)
-                .build();
-
-        return prodRepo.save(product);
+            .name(productDTO.getName())
+            .description(productDTO.getDescription())
+            .price(productDTO.getPrice())
+            .quantity(productDTO.getQuantity())
+            .userId(currentUserId)
+            .imageMediaIds(new ArrayList<>())
+            .build();
+        
+        Product savedProduct = prodRepo.save(product);
+        
+        // Publish image upload events via Kafka (asynchronous)
+        if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
+            for (String imageBase64 : productDTO.getImages()) {
+                String contentType = extractContentType(imageBase64);
+                productImageEventService.publishProductImageUploadEvent(
+                    savedProduct.getId(), imageBase64, contentType);
+            }
+        }
+        
+        return savedProduct;
     }
 
     public Product replaceProduct(String id, ProductDTO productDTO) {
@@ -132,6 +148,16 @@ public class ProductService {
             throw new IllegalArgumentException("You can only delete your own products");
         }
         prodRepo.delete(existingProduct);
+    }
+
+    private String extractContentType(String imageBase64) {
+        if (imageBase64.contains(",")) {
+            String dataUrl = imageBase64.split(",")[0];
+            if (dataUrl.contains("image/")) {
+                return dataUrl.substring(dataUrl.indexOf("image/"), dataUrl.indexOf(";"));
+            }
+        }
+        return "image/jpeg"; // default
     }
 
     private String getCurrentUserId() {
