@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { ProductService, CreateProductResponse } from '../../services/product';
 import { AuthService } from '../../services/auth';
+import { ImageUtilsService } from '../../services/image-utils';
 
 @Component({
   selector: 'app-add-product',
@@ -21,49 +22,40 @@ export class AddProductComponent {
     private fb: FormBuilder,
     private router: Router,
     private productService: ProductService,
-    private authService: AuthService
+    private authService: AuthService,
+    private imageUtils: ImageUtilsService
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
       price: ['', [Validators.required, Validators.min(0.01)]],
-      quantity: ['', [Validators.required, Validators.min(0)]]
+      quantity: ['', [Validators.required, Validators.min(1)]]
     });
   }
 
-  onFileSelect(event: Event): void {
+  async onFileSelect(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const files = Array.from(input.files);
       
-      // Validate file types
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      const validFiles = files.filter(file => validTypes.includes(file.type));
-      
-      if (validFiles.length !== files.length) {
-        alert('Only JPEG, PNG, and WebP images are allowed');
-        return;
-      }
-      
-      // Validate file size (max 5MB per file)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      const oversizedFiles = validFiles.filter(file => file.size > maxSize);
-      
-      if (oversizedFiles.length > 0) {
-        alert('Images must be smaller than 5MB each');
-        return;
+      // Validate each file
+      const validFiles: File[] = [];
+      for (const file of files) {
+        const validation = this.imageUtils.validateImageFile(file, 5);
+        if (!validation.isValid) {
+          alert(validation.error);
+          return;
+        }
+        validFiles.push(file);
       }
       
       this.selectedFiles = [...this.selectedFiles, ...validFiles];
       
       // Generate previews
-      validFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.imagePreviews.push(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
+      for (const file of validFiles) {
+        const { previewUrl } = await this.imageUtils.convertFileToBase64(file);
+        this.imagePreviews.push(previewUrl);
+      }
     }
   }
 
@@ -78,10 +70,7 @@ export class AddProductComponent {
       return;
     }
 
-    if (this.selectedFiles.length === 0) {
-      alert('Please add at least one product image');
-      return;
-    }
+
 
     // Check if user has seller role
     if (!this.authService.hasRole('seller')) {
@@ -92,23 +81,25 @@ export class AddProductComponent {
     this.isSubmitting = true;
     
     try {
-      // Convert all images to base64
-      const imageBase64Array: string[] = [];
-      for (const file of this.selectedFiles) {
-        const base64 = await this.convertFileToBase64(file);
-        imageBase64Array.push(base64);
-      }
-      
-      // Create product data with images
-      const productData = {
+      // Create product data
+      const productData: any = {
         name: this.productForm.value.name,
         description: this.productForm.value.description,
         price: parseFloat(this.productForm.value.price),
-        quantity: parseInt(this.productForm.value.quantity, 10),
-        images: imageBase64Array
+        quantity: parseInt(this.productForm.value.quantity, 10)
       };
       
-      // Create product with images
+      // Add images if any are selected
+      if (this.selectedFiles.length > 0) {
+        const imageBase64Array: string[] = [];
+        for (const file of this.selectedFiles) {
+          const { base64 } = await this.imageUtils.convertFileToBase64(file);
+          imageBase64Array.push(base64);
+        }
+        productData.images = imageBase64Array;
+      }
+      
+      // Create product
       this.productService.createProductWithImages(productData).subscribe({
         next: (createdProduct: CreateProductResponse) => {
           console.log('Product created successfully:', createdProduct);
@@ -118,7 +109,8 @@ export class AddProductComponent {
         },
         error: (error: any) => {
           console.error('Error creating product:', error);
-          alert(`Failed to create product: ${error.message}`);
+          const errorMessage = error.message || 'Failed to create product';
+          alert(errorMessage);
           this.isSubmitting = false;
         }
       });
@@ -130,16 +122,7 @@ export class AddProductComponent {
     }
   }
 
-  private convertFileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
+
 
   cancel(): void {
     this.router.navigate(['/']);
