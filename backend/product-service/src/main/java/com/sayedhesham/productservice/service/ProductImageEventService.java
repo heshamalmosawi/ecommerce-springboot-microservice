@@ -1,7 +1,6 @@
 package com.sayedhesham.productservice.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,14 +12,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class ProductImageEventService {
-    private static final Logger log = LoggerFactory.getLogger(ProductImageEventService.class);
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Value("${kafka.topic.product.image.upload}")
     private String productImageUploadTopic;
