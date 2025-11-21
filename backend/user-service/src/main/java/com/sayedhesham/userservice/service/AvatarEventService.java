@@ -1,7 +1,5 @@
 package com.sayedhesham.userservice.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,11 +10,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AvatarEventService {
-
-    private static final Logger log = LoggerFactory.getLogger(AvatarEventService.class);
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
