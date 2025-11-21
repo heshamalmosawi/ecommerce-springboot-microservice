@@ -28,7 +28,7 @@ public class MediaServiceClient {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Media service not available"));
             
-            String url = mediaServiceInstance.getUri().toString() + "/api/media/" + mediaId;
+            String url = mediaServiceInstance.getUri().toString() + "/media/" + mediaId;
             log.info("Fetching media from: {}", url);
             
             MediaResponse response = restTemplate.getForObject(url, MediaResponse.class);
