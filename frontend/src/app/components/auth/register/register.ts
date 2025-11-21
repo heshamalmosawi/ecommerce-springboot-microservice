@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService, RegisterRequest } from '../../../services/auth';
+import { ImageUtilsService, ImageData } from '../../../services/image-utils';
 
 @Component({
   selector: 'app-register',
@@ -15,13 +16,17 @@ export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   isLoading = false;
   errorMessage = '';
-  selectedFile: File | null = null;
-  previewUrl: string | null = null;
+  imageData: ImageData = {
+    file: null,
+    previewUrl: null,
+    base64: null
+  };
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private imageUtils: ImageUtilsService
   ) {
     this.registerForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -45,30 +50,24 @@ export class RegisterComponent implements OnInit {
     return null;
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.selectedFile = input.files[0];
-      this.convertToBase64();
+  async onFileSelected(event: Event): Promise<void> {
+    const file = this.imageUtils.onFileSelected(event);
+    if (file) {
+      const validation = this.imageUtils.validateImageFile(file);
+      if (!validation.isValid) {
+        this.errorMessage = validation.error || 'Invalid image file';
+        return;
+      }
+
+      this.imageData = await this.imageUtils.processImageFile(file);
+      if (this.imageData.base64) {
+        this.registerForm.patchValue({ avatar_b64: this.imageData.base64 });
+      }
     }
   }
 
   triggerFileInput(): void {
-    const input = document.getElementById('avatar') as HTMLInputElement;
-    if (input) {
-      input.click();
-    }
-  }
-
-  convertToBase64(): void {
-    if (this.selectedFile) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl = reader.result as string;
-        this.registerForm.patchValue({ avatar_b64: reader.result as string });
-      };
-      reader.readAsDataURL(this.selectedFile);
-    }
+    this.imageUtils.triggerFileInput('avatar');
   }
 
   onSubmit(): void {

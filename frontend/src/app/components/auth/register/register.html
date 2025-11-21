@@ -99,19 +99,19 @@
     @if (registerForm.get('role')?.value === 'seller') {
     <div class="form-group">
       <label for="avatar">Profile Picture (Optional)</label>
-      <div class="avatar-upload" [ngClass]="{ 'has-image': previewUrl }">
+      <div class="avatar-upload" [ngClass]="{ 'has-image': imageData.previewUrl }">
         <input id="avatar" type="file" accept="image/*" (change)="onFileSelected($event)" class="form-control"
           style="display: none;" />
-        @if (!previewUrl) {
+        @if (!imageData.previewUrl) {
         <div (click)="triggerFileInput()">
           <div class="upload-icon">📷</div>
           <div class="upload-text">Click to upload profile picture</div>
           <div class="upload-hint">PNG, JPG up to 10MB</div>
         </div>
         }
-        @if (previewUrl) {
+        @if (imageData.previewUrl) {
         <div class="avatar-preview">
-          <img [src]="previewUrl" alt="Avatar preview" class="preview-image" />
+          <img [src]="imageData.previewUrl" alt="Avatar preview" class="preview-image" />
         </div>
         }
       </div>

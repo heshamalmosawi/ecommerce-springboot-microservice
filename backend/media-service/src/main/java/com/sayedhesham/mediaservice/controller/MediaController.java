@@ -31,7 +31,7 @@ public class MediaController {
     @PostMapping("/upload")
     public ResponseEntity<MediaResponse> uploadMedia(@RequestBody MediaUploadRequest request) {
         try {
-            log.info("Received media upload request for type: {}, owner: {}", 
+            log.info("Received media upload request for type: {}, owner: {}",
                     request.getMediaType(), request.getOwnerId());
 
             Media uploadedMedia = mediaService.uploadMedia(
@@ -52,7 +52,7 @@ public class MediaController {
                     .uploadTimestamp(uploadedMedia.getUploadTimestamp())
                     .build();
 
-            log.info("Successfully uploaded media with ID: {}, size: {}KB", 
+            log.info("Successfully uploaded media with ID: {}, size: {}KB",
                     uploadedMedia.getId(), uploadedMedia.getFileSizeKB());
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -70,7 +70,7 @@ public class MediaController {
     public ResponseEntity<MediaResponse> getMedia(@PathVariable String mediaId) {
         try {
             Media media = mediaService.getMediaById(mediaId);
-            
+
             MediaResponse response = MediaResponse.builder()
                     .id(media.getId())
                     .base64Data(media.getBase64Data())
@@ -95,17 +95,17 @@ public class MediaController {
     public ResponseEntity<List<MediaResponse>> getMediaByOwner(@PathVariable String ownerId) {
         try {
             List<Media> mediaList = mediaService.getMediaByOwner(ownerId);
-            
+
             List<MediaResponse> responses = mediaList.stream()
                     .map(media -> MediaResponse.builder()
-                            .id(media.getId())
-                            .base64Data(media.getBase64Data())
-                            .contentType(media.getContentType())
-                            .fileSizeBytes(media.getFileSizeBytes())
-                            .fileSizeKB(media.getFileSizeKB())
-                            .fileSizeMB(media.getFileSizeMB())
-                            .uploadTimestamp(media.getUploadTimestamp())
-                            .build())
+                    .id(media.getId())
+                    .base64Data(media.getBase64Data())
+                    .contentType(media.getContentType())
+                    .fileSizeBytes(media.getFileSizeBytes())
+                    .fileSizeKB(media.getFileSizeKB())
+                    .fileSizeMB(media.getFileSizeMB())
+                    .uploadTimestamp(media.getUploadTimestamp())
+                    .build())
                     .toList();
 
             return ResponseEntity.ok(responses);
@@ -133,6 +133,7 @@ public class MediaController {
     // DTOs
     @Data
     public static class MediaUploadRequest {
+
         private String base64Data;
         private String contentType;
         private String mediaType; // "avatar", "product_image"
@@ -143,6 +144,7 @@ public class MediaController {
     @Data
     @Builder
     public static class MediaResponse {
+
         private String id;
         private String base64Data;
         private String contentType;

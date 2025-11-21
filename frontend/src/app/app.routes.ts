@@ -3,6 +3,7 @@ import { LayoutComponent } from './components/layout/layout';
 import { Home } from './components/home/home';
 import { AuthComponent } from './components/auth/auth';
 import { authGuard } from './guards/auth-guard';
+import { roleGuard } from './guards/role-guard';
 
 export const routes: Routes = [
   {
@@ -17,6 +18,12 @@ export const routes: Routes = [
       {
         path: 'auth',
         component: AuthComponent
+      },
+      {
+        path: 'products/add',
+        loadComponent: () => import('./components/add-product/add-product').then(m => m.AddProductComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['seller'] }
       }
     ]
   }
