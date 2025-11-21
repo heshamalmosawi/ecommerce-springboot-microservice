@@ -153,8 +153,11 @@ public class ProductService {
     private String extractContentType(String imageBase64) {
         if (imageBase64.contains(",")) {
             String dataUrl = imageBase64.split(",")[0];
-            if (dataUrl.contains("image/")) {
-                return dataUrl.substring(dataUrl.indexOf("image/"), dataUrl.indexOf(";"));
+            int imageIndex = dataUrl.indexOf("image/");
+            int semicolonIndex = dataUrl.indexOf(";");
+            // Ensure 'image/' appears before the semicolon and the substring is not empty
+            if (imageIndex != -1 && semicolonIndex != -1 && imageIndex < semicolonIndex) {
+                return dataUrl.substring(imageIndex, semicolonIndex);
             }
         }
         return "image/jpeg"; // default

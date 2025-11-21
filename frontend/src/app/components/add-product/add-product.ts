@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProductService, CreateProductResponse } from '../../services/product';
+import { ProductService, CreateProductResponse, ProductWithImagesDTO } from '../../services/product';
 import { AuthService } from '../../services/auth';
 import { ImageUtilsService } from '../../services/image-utils';
 
@@ -37,7 +37,7 @@ export class AddProductComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const files = Array.from(input.files);
-      
+
       // Validate each file
       const validFiles: File[] = [];
       for (const file of files) {
@@ -48,9 +48,9 @@ export class AddProductComponent {
         }
         validFiles.push(file);
       }
-      
+
       this.selectedFiles = [...this.selectedFiles, ...validFiles];
-      
+
       // Generate previews
       for (const file of validFiles) {
         const { previewUrl } = await this.imageUtils.convertFileToBase64(file);
@@ -79,16 +79,17 @@ export class AddProductComponent {
     }
 
     this.isSubmitting = true;
-    
+
     try {
       // Create product data
-      const productData: any = {
+      const productData: ProductWithImagesDTO = {
         name: this.productForm.value.name,
         description: this.productForm.value.description,
         price: parseFloat(this.productForm.value.price),
-        quantity: parseInt(this.productForm.value.quantity, 10)
+        quantity: parseInt(this.productForm.value.quantity, 10),
+        images: []
       };
-      
+
       // Add images if any are selected
       if (this.selectedFiles.length > 0) {
         const imageBase64Array: string[] = [];
@@ -98,7 +99,7 @@ export class AddProductComponent {
         }
         productData.images = imageBase64Array;
       }
-      
+
       // Create product
       this.productService.createProductWithImages(productData).subscribe({
         next: (createdProduct: CreateProductResponse) => {
@@ -108,13 +109,18 @@ export class AddProductComponent {
           this.router.navigate(['/']);
         },
         error: (error: any) => {
-          console.error('Error creating product:', error);
-          const errorMessage = error.message || 'Failed to create product';
-          alert(errorMessage);
+          if (error instanceof Error) {
+            console.error('Error creating product:', error);
+            const errorMessage = error.message || 'Failed to create product';
+            alert(errorMessage);
+          } else {
+            console.error('Unexpected error:', error);
+            alert('An unexpected error occurred. Please try again.');
+          }
           this.isSubmitting = false;
         }
       });
-      
+
     } catch (error) {
       console.error('Error processing images:', error);
       alert('Failed to process images. Please try again.');

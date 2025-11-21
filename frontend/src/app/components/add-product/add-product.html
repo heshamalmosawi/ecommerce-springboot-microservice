@@ -62,7 +62,7 @@
             [class.error]="productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched"
           >
           @if (productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched) {
-            <span class="error-message">Stock must be at least 0</span>
+            <span class="error-message">Please enter a valid stock quantity (minimum 1)</span>
           }
         </div>
       </div>

@@ -1,7 +1,5 @@
 package com.sayedhesham.productservice.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -10,11 +8,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class MediaServiceClient {
-
-    private static final Logger log = LoggerFactory.getLogger(MediaServiceClient.class);
 
     @Autowired
     private RestTemplate restTemplate;
