@@ -57,6 +57,9 @@ public class AvatarProcessingService {
             AvatarUploadEvent event = objectMapper.readValue(eventJson, AvatarUploadEvent.class);
             log.info("Processing avatar update for user: {}", event.getUserId());
 
+            // Find and delete existing avatar for this user
+            deleteExistingAvatar(event.getUserId());
+
             String mediaId = processAvatarData(event.getUserId(), event.getAvatarData(), event.getContentType());
 
             publishMediaProcessedEvent(event.getUserId(), mediaId, "avatar", "updated");
@@ -104,6 +107,23 @@ public class AvatarProcessingService {
                 .build();
 
         return mediaRepository.save(media).getId();
+    }
+
+    private void deleteExistingAvatar(String userId) {
+        try {
+            // Find existing avatar for this user
+            Media existingAvatar = mediaRepository.findByOwnerIdAndMediaType(userId, "avatar");
+            if (existingAvatar != null) {
+                log.info("Deleting existing avatar for user: {}, mediaId: {}", userId, existingAvatar.getId());
+                mediaRepository.delete(existingAvatar);
+                log.info("Successfully deleted existing avatar for user: {}", userId);
+            } else {
+                log.info("No existing avatar found for user: {}", userId);
+            }
+        } catch (Exception e) {
+            log.error("Error deleting existing avatar for user: {}", userId, e);
+            // Continue with processing even if deletion fails
+        }
     }
 
     private void publishMediaProcessedEvent(String userId, String mediaId, String mediaType, String action) {
