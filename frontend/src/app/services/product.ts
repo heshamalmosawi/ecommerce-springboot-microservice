@@ -12,6 +12,7 @@ export interface Product {
   quantity: number;
   userId: string;
   imageMediaIds: string[];
+  imageUrl?: string;
 }
 
 export interface ProductDTO {

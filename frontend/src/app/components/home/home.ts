@@ -10,7 +10,7 @@ import { ProductService, Product } from '../../services/product';
   styleUrl: './home.scss'
 })
 export class Home implements OnInit {
-  products: any[] = [];
+  products: Product[] = [];
   loading: boolean = false;
   error: string | null = null;
 
