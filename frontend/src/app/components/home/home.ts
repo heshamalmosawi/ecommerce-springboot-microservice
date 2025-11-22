@@ -33,7 +33,7 @@ export class Home implements OnInit {
         this.loadImages();
       },
       error: (err) => {
-        this.error = err.message || 'Failed to load products';
+        this.error = err.error?.Error || err.message || 'Failed to load products';
         this.loading = false;
       }
     });

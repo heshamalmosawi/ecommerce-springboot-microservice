@@ -61,9 +61,41 @@
   .product-image-section {
     .product-image {
       width: 100%;
-      height: auto;
+      height: 500px;
+      object-fit: contain;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+    }
+
+    .image-gallery {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 0;
+
+      .gallery-thumbnail {
+        width: 80px;
+        height: 80px;
+        max-height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+
+        &:hover {
+          border-color: #3498db;
+          transform: scale(1.05);
+        }
+
+        &.active {
+          border-color: #2980b9;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+      }
     }
   }
 

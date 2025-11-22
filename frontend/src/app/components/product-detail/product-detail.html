@@ -16,6 +16,20 @@
       <div class="product-content">
         <div class="product-image-section">
           <img [src]="product.imageUrl" [alt]="product.name" class="product-image" />
+          
+          @if (product.imageUrls && product.imageUrls.length > 1) {
+            <div class="image-gallery">
+              @for (imageUrl of product.imageUrls; track imageUrl) {
+                <img 
+                  [src]="imageUrl" 
+                  [alt]="'Thumbnail of ' + product.name"
+                  class="gallery-thumbnail"
+                  [class.active]="imageUrl === product.imageUrl"
+                  (click)="selectImage(imageUrl)"
+                />
+              }
+            </div>
+          }
         </div>
         
         <div class="product-info-section">
@@ -32,8 +46,7 @@
             </div>
             
             <div class="product-meta">
-              <p><strong>Category:</strong> {{ product.category }}</p>
-              <p><strong>Condition:</strong> {{ product.condition }}</p>
+              <p><strong>Seller:</strong> {{ product.sellerName }}</p>
             </div>
           </div>
         </div>

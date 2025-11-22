@@ -10,9 +10,10 @@ export interface Product {
   description: string;
   price: number;
   quantity: number;
-  userId: string;
+  sellerName: string;
   imageMediaIds: string[];
   imageUrl?: string;
+  imageUrls?: string[];
 }
 
 export interface ProductDTO {
@@ -32,7 +33,7 @@ export interface CreateProductResponse {
   description: string;
   price: number;
   quantity: number;
-  userId: string;
+  sellerName: string;
   imageMediaIds: string[];
 }
 

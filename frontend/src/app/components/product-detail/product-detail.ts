@@ -39,34 +39,60 @@ export class ProductDetail implements OnInit {
     this.productService.getProductById(productId).subscribe({
       next: (product) => {
         this.product = product;
-        this.loadProductImage();
+        this.loadProductImages();
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message || 'Failed to load product';
+        if (err.status === 404) {
+          this.error = 'Product not found';
+        } else {
+          this.error = err.error?.Error || err.message || 'Failed to load product';
+        }
         this.loading = false;
       }
     });
   }
 
-  loadProductImage() {
+  loadProductImages() {
     if (this.product && this.product.imageMediaIds && this.product.imageMediaIds.length > 0) {
-      this.http.get(`${environment.apiUrl}/media/${this.product.imageMediaIds[0]}`).subscribe({
-        next: (response: any) => {
-          if (this.product) {
-            this.product.imageUrl = response.base64Data.startsWith('data:') 
-              ? response.base64Data 
-              : 'data:' + response.contentType + ';base64,' + response.base64Data;
+      this.product.imageUrls = [];
+      
+      this.product.imageMediaIds.forEach((mediaId, index) => {
+        this.http.get(`${environment.apiUrl}/media/${mediaId}`).subscribe({
+          next: (response: any) => {
+            if (this.product && this.product.imageUrls) {
+              const imageUrl = response.base64Data.startsWith('data:') 
+                ? response.base64Data 
+                : 'data:' + response.contentType + ';base64,' + response.base64Data;
+              this.product.imageUrls[index] = imageUrl;
+              
+              // Set the first image as the main image
+              if (index === 0) {
+                this.product.imageUrl = imageUrl;
+              }
+            }
+          },
+          error: () => {
+            if (this.product && this.product.imageUrls) {
+              this.product.imageUrls[index] = 'https://placehold.co/600x400?text=Image+Not+Found';
+              
+              // If this is the first image and it failed, set placeholder
+              if (index === 0 && !this.product.imageUrl) {
+                this.product.imageUrl = 'https://placehold.co/600x400?text=No+Image';
+              }
+            }
           }
-        },
-        error: () => {
-          if (this.product) {
-            this.product.imageUrl = 'https://placehold.co/600x400?text=No+Image';
-          }
-        }
+        });
       });
     } else if (this.product) {
       this.product.imageUrl = 'https://placehold.co/600x400?text=No+Image';
+      this.product.imageUrls = [];
+    }
+  }
+
+  selectImage(imageUrl: string) {
+    if (this.product) {
+      this.product.imageUrl = imageUrl;
     }
   }
 
