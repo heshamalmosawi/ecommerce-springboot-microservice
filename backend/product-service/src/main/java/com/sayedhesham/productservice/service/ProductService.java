@@ -9,7 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
+import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.model.Product;
+import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
 import com.sayedhesham.productservice.repository.UserRepository;
 
@@ -33,6 +35,26 @@ public class ProductService {
     public Product getById(String id) {
         return prodRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
+
+    public ProductResponseDTO getByIdWithSellerName(String id) {
+        Product product = prodRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        
+        User seller = userRepo.findById(product.getUserId())
+                .orElseThrow(() -> new RuntimeException("Seller not found"));
+        
+        ProductResponseDTO responseDTO = ProductResponseDTO.builder()
+            .id(product.getId())
+            .name(product.getName())
+            .description(product.getDescription())
+            .price(product.getPrice())
+            .quantity(product.getQuantity())
+            .sellerName(seller.getName())
+            .imageMediaIds(product.getImageMediaIds())
+            .build();
+        
+        return responseDTO;
     }
 
     public Product create(ProductDTO productDTO) {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
+import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
 
@@ -41,7 +42,7 @@ public class ProductsController {
     @GetMapping("/{id}")
     public ResponseEntity<Object> getProductById(@PathVariable String id) {
         try {
-            Product product = prodService.getById(id);
+            ProductResponseDTO product = prodService.getByIdWithSellerName(id);
             return ResponseEntity.ok(product);
         } catch (RuntimeException r) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
