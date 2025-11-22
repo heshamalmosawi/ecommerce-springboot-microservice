@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ProductService, Product } from '../../services/product';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -41,7 +42,7 @@ export class Home implements OnInit {
     for (let product of this.products) {
       product.imageUrl = 'https://placehold.co/300x200?text=No+Image';
       if (product.imageMediaIds && product.imageMediaIds.length > 0) {
-        this.http.get(`http://localhost:8080/media/${product.imageMediaIds[0]}`).subscribe({
+        this.http.get(`${environment.apiUrl}/media/${product.imageMediaIds[0]}`).subscribe({
           next: (response: any) => {
             product.imageUrl = response.base64Data.startsWith('data:') 
               ? response.base64Data 
