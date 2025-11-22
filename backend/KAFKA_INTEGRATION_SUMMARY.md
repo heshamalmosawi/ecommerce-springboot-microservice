@@ -111,10 +111,10 @@ Similar flow for product images using `product.image.upload` topic.
 ## REST API Endpoints
 
 ### Media Service
-- `POST /api/media/upload` - Upload media with validation
-- `GET /api/media/{id}` - Retrieve media by ID
-- `GET /api/media/owner/{ownerId}` - Get all media by owner
-- `DELETE /api/media/{id}` - Delete media
+- `POST /media/upload` - Upload media with validation
+- `GET /media/{id}` - Retrieve media by ID
+- `GET /media/owner/{ownerId}` - Get all media by owner
+- `DELETE /media/{id}` - Delete media
 
 ## Validation & Security
 
