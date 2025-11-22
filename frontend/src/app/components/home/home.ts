@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { environment } from '../../../environments/environment';
 
@@ -15,7 +16,7 @@ export class Home implements OnInit {
   loading: boolean = false;
   error: string | null = null;
 
-  constructor(private productService: ProductService, private http: HttpClient) {}
+  constructor(private productService: ProductService, private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -54,5 +55,9 @@ export class Home implements OnInit {
         });
       }
     }
+  }
+
+  navigateToProduct(productId: string) {
+    this.router.navigate(['/products', productId]);
   }
 }

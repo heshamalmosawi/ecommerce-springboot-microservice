@@ -1,0 +1,43 @@
+<div class="product-detail-container">
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading product details...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+      <button (click)="goBack()" class="back-btn">Go Back</button>
+    </div>
+  } @else if (product) {
+    <div class="product-detail">
+      <button (click)="goBack()" class="back-btn">← Back to Products</button>
+      
+      <div class="product-content">
+        <div class="product-image-section">
+          <img [src]="product.imageUrl" [alt]="product.name" class="product-image" />
+        </div>
+        
+        <div class="product-info-section">
+          <h1 class="product-name">{{ product.name }}</h1>
+          <p class="product-description">{{ product.description }}</p>
+          
+          <div class="product-details">
+            <div class="price-section">
+              <span class="product-price">${{ product.price.toFixed(2) }}</span>
+            </div>
+            
+            <div class="stock-section">
+              <span class="product-quantity">{{ product.quantity }} in stock</span>
+            </div>
+            
+            <div class="product-meta">
+              <p><strong>Category:</strong> {{ product.category }}</p>
+              <p><strong>Condition:</strong> {{ product.condition }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
