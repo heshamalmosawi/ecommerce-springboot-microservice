@@ -4,10 +4,10 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService, User } from '../../services/auth';
 import { ImageUtilsService, ImageData } from '../../services/image-utils';
-import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -53,13 +53,13 @@ export class Profile implements OnInit {
       next: (user) => {
         this.user = user;
         this.originalUserData = user ? { ...user } : null;
-        
+
         if (this.user) {
-        this.profileForm.patchValue({
-          name: this.user.name || '',
-          email: this.user.email,
-          role: this.user.role ? this.user.role.charAt(0).toUpperCase() + this.user.role.slice(1) : ''
-        });
+          this.profileForm.patchValue({
+            name: this.user.name || '',
+            email: this.user.email,
+            role: this.user.role ? this.user.role.charAt(0).toUpperCase() + this.user.role.slice(1) : ''
+          });
           // Set avatar using mediaId to fetch from backend (more reliable)
           // But only fetch if we haven't just uploaded a new avatar
           if (this.user.avatarMediaId && !this.justUploadedAvatar) {
@@ -69,7 +69,7 @@ export class Profile implements OnInit {
             this.avatarUrl = '';
             this.avatarBase64 = '';
           }
-          
+
           // Reset the flag after checking
           this.justUploadedAvatar = false;
         }
@@ -78,7 +78,7 @@ export class Profile implements OnInit {
       error: (error: any) => {
         console.error('Error loading profile:', error);
         this.loading = false;
-        
+
         // Handle specific error cases
         if (error.status === 401) {
           this.showMessage('Session expired. Please login again.', 'error');
@@ -136,25 +136,25 @@ export class Profile implements OnInit {
       }
 
       // Call the profile update API
-      const updatedUser = await this.authService.updateProfile(updateData).toPromise();
-      
+      const updatedUser = await firstValueFrom(this.authService.updateProfile(updateData));
+
       if (updatedUser) {
         this.user = updatedUser;
         this.originalUserData = { ...updatedUser };
-        
+
         // If we uploaded an avatar, keep the flag set to prevent fetching from backend
         // The uploaded avatar will continue to display until next page refresh
         if (!updateData.avatarBase64) {
           // Only reset flag if we didn't upload a new avatar
           this.justUploadedAvatar = false;
         }
-        
+
         this.isEditing = false;
         this.showMessage('Profile updated successfully', 'success');
       }
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      
+
       // Handle specific error cases
       if (error.status === 400) {
         this.showMessage('Invalid data provided', 'error');
@@ -227,7 +227,7 @@ export class Profile implements OnInit {
   private showMessage(message: string, type: 'success' | 'error'): void {
     this.message = message;
     this.messageType = type;
-    
+
     // Auto-hide message after 5 seconds
     setTimeout(() => {
       this.message = '';
