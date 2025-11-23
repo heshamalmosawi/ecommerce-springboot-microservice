@@ -10,6 +10,8 @@ export interface User {
   email: string;
   role: 'client' | 'seller';
   name?: string;
+  avatarMediaId?: string;
+  avatarBase64?: string;
 }
 
 export interface LoginRequest {
@@ -188,5 +190,22 @@ export class AuthService {
   hasRole(role: 'client' | 'seller'): boolean {
     const user = this.getCurrentUserValue();
     return user ? user.role === role : false;
+  }
+
+  updateProfile(profileData: {
+    name?: string;
+    email?: string;
+    avatarBase64?: string;
+  }): Observable<User> {
+    return this.http.patch<User>(`${this.API_URL}/users`, profileData).pipe(
+      map(updatedUser => {
+        // Update the current user in BehaviorSubject
+        const currentUser = this.currentUserSubject.value;
+        if (currentUser) {
+          this.currentUserSubject.next({ ...currentUser, ...updatedUser });
+        }
+        return updatedUser;
+      })
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { RouterLink, RouterOutlet, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../services/auth';
@@ -11,6 +11,7 @@ import { AuthService, User } from '../../services/auth';
 })
 export class LayoutComponent implements OnInit {
   currentUser: User | null = null;
+  isDropdownOpen = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -35,5 +36,21 @@ export class LayoutComponent implements OnInit {
 
   navigateToAddProduct(): void {
     this.router.navigate(['/products/add']);
+  }
+
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-menu')) {
+      this.closeDropdown();
+    }
   }
 }

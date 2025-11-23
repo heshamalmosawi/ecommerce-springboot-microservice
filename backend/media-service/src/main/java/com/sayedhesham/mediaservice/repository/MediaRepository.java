@@ -10,5 +10,6 @@ import com.sayedhesham.mediaservice.model.Media;
 @Repository
 public interface MediaRepository extends MongoRepository<Media, String> {
     List<Media> findByOwnerId(String ownerId);
+    Media findByOwnerIdAndMediaType(String ownerId, String mediaType);
     void deleteByOwnerId(String ownerId);
 }

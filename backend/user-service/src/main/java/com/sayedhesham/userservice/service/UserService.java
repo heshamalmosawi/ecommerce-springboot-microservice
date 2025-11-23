@@ -2,9 +2,11 @@ package com.sayedhesham.userservice.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sayedhesham.userservice.dto.UserDTO;
+import com.sayedhesham.userservice.dto.UserPatchDTO;
 import com.sayedhesham.userservice.model.User;
 import com.sayedhesham.userservice.repository.UserRepository;
 
@@ -12,6 +14,9 @@ import com.sayedhesham.userservice.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepo;
+    
+    @Autowired
+    private AvatarEventService avatarEventService;
 
     public UserService(UserRepository userRepository) {
         this.userRepo = userRepository;
@@ -40,7 +45,7 @@ public class UserService {
                 .build();
     }
 
-    public UserDTO update(String id, UserDTO user) {
+    public UserDTO update(String id, UserPatchDTO user) {
         User existingUser = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -58,6 +63,40 @@ public class UserService {
                 throw new RuntimeException("Invalid role");
             }
         }
+
+        // Handle avatar updates
+        if (user.getAvatarBase64() != null && !user.getAvatarBase64().isEmpty()) {
+            // Validate image size (max 2MB)
+            String base64Data = user.getAvatarBase64();
+            
+            // Extract base64 data if it contains data URI prefix
+            if (base64Data.startsWith("data:image/")) {
+                int commaIndex = base64Data.indexOf(',');
+                if (commaIndex != -1) {
+                    base64Data = base64Data.substring(commaIndex + 1);
+                }
+            }
+            
+            // Calculate size in bytes (base64 is ~33% larger than original)
+            int imageSizeBytes = (base64Data.length() * 3) / 4;
+            int maxFileSizeBytes = 2 * 1024 * 1024; // 2MB
+            
+            if (imageSizeBytes > maxFileSizeBytes) {
+                throw new RuntimeException("Avatar image size exceeds 2MB limit");
+            }
+            
+            // Publish avatar update event for base64 image
+            String contentType = "image/jpeg"; // Default content type
+            if (user.getAvatarBase64().startsWith("data:image/")) {
+                String[] parts = user.getAvatarBase64().split(";");
+                if (parts.length > 0) {
+                    contentType = parts[0].replace("data:", "");
+                }
+            }
+            avatarEventService.publishAvatarUpdateEvent(id, user.getAvatarBase64(), contentType);
+        }
+
+
 
         User updatedUser = userRepo.save(existingUser);
         return UserDTO.builder()

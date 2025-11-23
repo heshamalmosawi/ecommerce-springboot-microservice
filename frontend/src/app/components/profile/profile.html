@@ -1,0 +1,112 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h2>My Profile</h2>
+    <button 
+      class="edit-btn" 
+      (click)="toggleEditMode()" 
+      [disabled]="loading">
+      {{ isEditing ? 'Cancel' : 'Edit Profile' }}
+    </button>
+  </div>
+
+  <div class="profile-content" *ngIf="!loading; else loadingTemplate">
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+      <!-- Avatar Section -->
+      <div class="avatar-section">
+        <div class="avatar-container">
+          <img 
+            [src]="avatarUrl" 
+            alt="Profile Avatar" 
+            class="avatar"
+            *ngIf="avatarUrl; else noAvatarTemplate">
+          <ng-template #noAvatarTemplate>
+            <div class="avatar-placeholder">
+              <span>{{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}</span>
+            </div>
+          </ng-template>
+        </div>
+        <div class="avatar-upload" *ngIf="isEditing">
+          <input 
+            type="file" 
+            accept="image/*" 
+            (change)="onAvatarChange($event)"
+            #avatarInput>
+          <button 
+            type="button" 
+            class="upload-btn"
+            (click)="avatarInput.click()">
+            Change Avatar
+          </button>
+        </div>
+      </div>
+
+      <!-- Profile Fields -->
+      <div class="form-fields">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input 
+            id="name"
+            type="text" 
+            formControlName="name"
+            [readonly]="!isEditing"
+            [class.error]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched">
+          <span 
+            class="error-message" 
+            *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched">
+            Name is required
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            id="email"
+            type="email" 
+            formControlName="email"
+            readonly>
+          <small class="help-text">Email cannot be changed</small>
+        </div>
+
+        <div class="form-group">
+          <label for="role">Role</label>
+          <input 
+            id="role"
+            type="text" 
+            formControlName="role"
+            readonly>
+          <small class="help-text">Role is assigned by system</small>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions" *ngIf="isEditing">
+        <button 
+          type="submit" 
+          class="save-btn"
+          [disabled]="profileForm.invalid || saving">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button 
+          type="button" 
+          class="cancel-btn"
+          (click)="cancelEdit()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading">
+      <p>Loading profile...</p>
+    </div>
+  </ng-template>
+
+  <!-- Success/Error Messages -->
+  <div class="message" 
+    *ngIf="message" 
+    [class.success]="messageType === 'success'"
+    [class.error]="messageType === 'error'">
+    {{ message }}
+  </div>
+</div>

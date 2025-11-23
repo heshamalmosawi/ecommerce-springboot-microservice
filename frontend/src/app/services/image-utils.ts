@@ -82,7 +82,7 @@ export class ImageUtilsService {
   /**
    * Validate image file type and size
    */
-  validateImageFile(file: File, maxSizeMB: number = 5): { isValid: boolean; error?: string } {
+  validateImageFile(file: File, maxSizeMB: number = 2): { isValid: boolean; error?: string } {
     // Check file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
