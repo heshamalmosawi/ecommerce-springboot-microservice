@@ -141,22 +141,6 @@ export class EditProductComponent implements OnInit {
     });
   }
 
-  private async loadImageAsBase64(mediaId: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.http.get(`${environment.apiUrl}/media/${mediaId}`).subscribe({
-        next: (response: any) => {
-          const base64Data = response.base64Data.startsWith('data:') 
-            ? response.base64Data 
-            : 'data:' + response.contentType + ';base64,' + response.base64Data;
-          resolve(base64Data);
-        },
-        error: (error) => {
-          reject(error);
-        }
-      });
-    });
-  }
-
   async onFileSelect(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {

@@ -217,6 +217,13 @@ public class ProductService {
             retainedIds = new ArrayList<>();
         }
 
+        // Validate that all retained image IDs belong to the current product
+        for (String retainedId : retainedIds) {
+            if (!currentImageIds.contains(retainedId)) {
+                throw new IllegalArgumentException("Image ID " + retainedId + " does not belong to this product");
+            }
+        }
+
         // Find images to remove (current images not in retained list)
         final List<String> finalRetainedIds = retainedIds;
         List<String> imagesToRemove = currentImageIds.stream()
