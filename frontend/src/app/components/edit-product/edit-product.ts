@@ -21,6 +21,7 @@ export class EditProductComponent implements OnInit {
   product: Product | null = null;
   productForm: FormGroup;
   isSubmitting = false;
+  isDeleting = false;
   loading = true;
   error: string | null = null;
   
@@ -234,5 +235,32 @@ export class EditProductComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/products', this.productId]);
+  }
+
+  deleteProduct(): void {
+    if (!this.product) {
+      return;
+    }
+
+    const confirmDelete = confirm(`Are you sure you want to delete "${this.product.name}"? This action cannot be undone.`);
+    
+    if (!confirmDelete) {
+      return;
+    }
+
+    this.isDeleting = true;
+
+    this.productService.deleteProduct(this.productId).subscribe({
+      next: () => {
+        console.log('Product deleted successfully');
+        this.isDeleting = false;
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        console.error('Error deleting product:', error);
+        this.error = error.message || 'Failed to delete product';
+        this.isDeleting = false;
+      }
+    });
   }
 }

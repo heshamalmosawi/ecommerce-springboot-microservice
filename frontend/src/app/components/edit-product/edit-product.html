@@ -150,19 +150,36 @@
         </div>
 
         <div class="form-actions">
-          <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
-          <button 
-            type="submit" 
-            class="btn-submit" 
-            [disabled]="productForm.invalid || isSubmitting"
-          >
-            @if (isSubmitting) {
-              <span class="spinner"></span>
-              Updating...
-            } @else {
-              Update Product
-            }
-          </button>
+          <div class="action-left">
+            <button 
+              type="button" 
+              (click)="deleteProduct()" 
+              class="btn-delete" 
+              [disabled]="isDeleting"
+            >
+              @if (isDeleting) {
+                <span class="spinner"></span>
+                Deleting...
+              } @else {
+                Delete Product
+              }
+            </button>
+          </div>
+          <div class="action-right">
+            <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
+            <button 
+              type="submit" 
+              class="btn-submit" 
+              [disabled]="productForm.invalid || isSubmitting"
+            >
+              @if (isSubmitting) {
+                <span class="spinner"></span>
+                Updating...
+              } @else {
+                Update Product
+              }
+            </button>
+          </div>
         </div>
       </form>
     </div>
