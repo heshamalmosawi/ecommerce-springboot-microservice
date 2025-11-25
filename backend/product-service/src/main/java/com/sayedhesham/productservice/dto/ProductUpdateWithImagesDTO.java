@@ -16,11 +16,9 @@ import lombok.Data;
 public class ProductUpdateWithImagesDTO {
     @NotBlank private String name;
     @NotBlank private String description;
-    @NotNull private Double price;
-    @NotNull
-    @Positive
-    private Integer quantity = 1; // Default quantity, must be positive
-    
+    @NotNull @Positive private Double price;
+    @NotNull @Positive private Integer quantity = 1; // Default quantity, must be positive
+
     private List<String> images; // Base64 encoded new images to add
     private List<String> retainedImageIds; // Existing image IDs to keep
 }

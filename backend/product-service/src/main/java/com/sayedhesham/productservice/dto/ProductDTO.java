@@ -11,9 +11,7 @@ import lombok.Data;
 public class ProductDTO {
     @NotBlank private String name;
     @NotBlank private String description;
-    @NotNull private Double price;
-    @NotNull
-    @Positive
-    private Integer quantity = 1; // Default quantity, must be positive
+    @NotNull @Positive private Double price;
+    @NotNull @Positive private Integer quantity = 1; // Default quantity, must be positive
     private List<String> images; // Base64 encoded images
 }
