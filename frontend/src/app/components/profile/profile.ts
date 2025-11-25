@@ -49,7 +49,9 @@ export class Profile implements OnInit {
 
   loadUserProfile(): void {
     this.loading = true;
-    this.authService.getCurrentUser().subscribe({
+    
+    // Force fresh data from backend by calling validateToken which hits /authenticate
+    this.authService.validateToken().subscribe({
       next: (user) => {
         this.user = user;
         this.originalUserData = user ? { ...user } : null;
@@ -200,7 +202,14 @@ export class Profile implements OnInit {
       next: (mediaResponse: any) => {
         if (mediaResponse && mediaResponse.base64Data && mediaResponse.contentType) {
           // Create data URL from base64Data and contentType
-          const dataUrl = `data:${mediaResponse.contentType};base64,${mediaResponse.base64Data}`;
+          // Check if base64Data already contains data URL prefix
+          let dataUrl: string;
+          if (mediaResponse.base64Data.startsWith('data:')) {
+            dataUrl = mediaResponse.base64Data; // Already a complete data URL
+          } else {
+            dataUrl = `data:${mediaResponse.contentType};base64,${mediaResponse.base64Data}`;
+          }
+          
           this.avatarImageData = [{
             file: null,
             previewUrl: dataUrl,
