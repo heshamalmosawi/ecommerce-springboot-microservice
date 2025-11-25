@@ -11,5 +11,4 @@ import com.sayedhesham.productservice.model.Product;
 public interface ProductRepository extends MongoRepository<Product, String> {
     List<Product> findByUserId(String userId);
     Page<Product> findByUserId(String userId, Pageable pageable);
-    Page<Product> findAll(Pageable pageable);
 }
