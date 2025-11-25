@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
+import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
 
@@ -62,11 +63,11 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
-
+    
     @PutMapping("/{id}")
-    public ResponseEntity<Object> ReplaceProduct(@PathVariable String id, @Valid @RequestBody ProductDTO product) {
+    public ResponseEntity<Object> updateProductWithImages(@PathVariable String id, @Valid @RequestBody ProductUpdateWithImagesDTO product) {
         try {
-            Product updatedProduct = prodService.replaceProduct(id, product);
+            Product updatedProduct = prodService.updateProductWithImages(id, product);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException r) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());

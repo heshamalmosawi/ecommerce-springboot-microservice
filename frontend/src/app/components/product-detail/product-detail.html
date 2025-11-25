@@ -48,6 +48,12 @@
             <div class="product-meta">
               <p><strong>Seller:</strong> {{ product.sellerName }}</p>
             </div>
+            
+            @if (isProductOwner()) {
+              <div class="product-actions">
+                <button (click)="editProduct()" class="btn-edit">Edit Product</button>
+              </div>
+            }
           </div>
         </div>
       </div>

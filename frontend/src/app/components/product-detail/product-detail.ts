@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
+import { AuthService } from '../../services/auth';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -20,6 +21,7 @@ export class ProductDetail implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
+    private authService: AuthService,
     private http: HttpClient
   ) {}
 
@@ -93,6 +95,25 @@ export class ProductDetail implements OnInit {
   selectImage(imageUrl: string) {
     if (this.product) {
       this.product.imageUrl = imageUrl;
+    }
+  }
+
+  isProductOwner(): boolean {
+    if (!this.product) {
+      return false;
+    }
+    
+    const currentUser = this.authService.getCurrentUserValue();
+    if (!currentUser) {
+      return false;
+    }
+    
+    return this.product.sellerName === currentUser.name;
+  }
+
+  editProduct(): void {
+    if (this.product) {
+      this.router.navigate(['/products', this.product.id, 'edit']);
     }
   }
 

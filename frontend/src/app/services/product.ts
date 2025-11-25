@@ -27,6 +27,15 @@ export interface ProductWithImagesDTO extends ProductDTO {
   images: string[]; // Array of base64 encoded images
 }
 
+export interface ProductUpdateWithImagesDTO {
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  images?: string[];        // NEW: Only NEW images as base64
+  retainedImageIds?: string[]; // NEW: Existing image IDs to KEEP
+}
+
 export interface CreateProductResponse {
   id: string;
   name: string;
@@ -118,6 +127,15 @@ export class ProductService {
         }
         
         return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  updateProductWithImages(id: string, data: ProductUpdateWithImagesDTO): Observable<Product> {
+    return this.http.put<Product>(`${this.API_URL}/products/${id}`, data).pipe(
+      catchError(error => {
+        console.error('Error updating product with images:', error);
+        return throwError(() => error);
       })
     );
   }

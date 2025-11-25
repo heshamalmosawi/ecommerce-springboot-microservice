@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
+import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
@@ -170,6 +171,77 @@ public class ProductService {
             throw new IllegalArgumentException("You can only delete your own products");
         }
         prodRepo.delete(existingProduct);
+    }
+
+    public Product updateProductWithImages(String id, ProductUpdateWithImagesDTO productDTO) {
+        Product existingProduct = prodRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        String currentUserId = getCurrentUserId();
+        if (!existingProduct.getUserId().equals(currentUserId)) {
+            throw new IllegalArgumentException("You can only modify your own products");
+        }
+
+        if (!userRepo.existsById(currentUserId)) {
+            throw new IllegalArgumentException("User does not exist");
+        }
+
+        // Validate basic product fields
+        if (productDTO.getName() == null || productDTO.getName().isEmpty()) {
+            throw new IllegalArgumentException("Product name is required");
+        }
+        if (productDTO.getPrice() <= 0) {
+            throw new IllegalArgumentException("Product price must be greater than zero");
+        }
+        if (productDTO.getDescription() == null || productDTO.getDescription().isEmpty()) {
+            throw new IllegalArgumentException("Product description is required");
+        }
+        if (productDTO.getQuantity() < 0) {
+            throw new IllegalArgumentException("Product quantity must be non-negative");
+        }
+
+        // Update basic product fields
+        existingProduct.setName(productDTO.getName());
+        existingProduct.setDescription(productDTO.getDescription());
+        existingProduct.setPrice(productDTO.getPrice());
+        existingProduct.setQuantity(productDTO.getQuantity());
+
+        // Handle image operations
+        List<String> currentImageIds = existingProduct.getImageMediaIds();
+        List<String> retainedIds = productDTO.getRetainedImageIds();
+        
+        // Initialize lists if null
+        if (currentImageIds == null) {
+            currentImageIds = new ArrayList<>();
+        }
+        if (retainedIds == null) {
+            retainedIds = new ArrayList<>();
+        }
+
+        // Find images to remove (current images not in retained list)
+        final List<String> finalRetainedIds = retainedIds;
+        List<String> imagesToRemove = currentImageIds.stream()
+                .filter(imageId -> !finalRetainedIds.contains(imageId))
+                .toList();
+
+        // Publish delete events for removed images
+        for (String imageId : imagesToRemove) {
+            productImageEventService.publishProductImageDeleteEvent(id, imageId);
+        }
+
+        // Publish upload events for new images
+        if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
+            for (String imageBase64 : productDTO.getImages()) {
+                String contentType = extractContentType(imageBase64);
+                productImageEventService.publishProductImageUploadEvent(
+                    id, imageBase64, contentType);
+            }
+        }
+
+        // Update product's image list with retained images
+        // Note: New images will be added asynchronously via Kafka events
+        existingProduct.setImageMediaIds(new ArrayList<>(retainedIds));
+
+        return prodRepo.save(existingProduct);
     }
 
     private String extractContentType(String imageBase64) {
