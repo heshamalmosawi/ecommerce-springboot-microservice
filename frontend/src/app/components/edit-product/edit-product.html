@@ -1,0 +1,170 @@
+<div class="edit-product-container">
+  @if (loading) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading product data...</p>
+    </div>
+  } @else if (error) {
+    <div class="error-container">
+      <div class="error-message">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p>{{ error }}</p>
+      </div>
+      <button (click)="cancel()" class="btn-cancel">Go Back</button>
+    </div>
+  } @else {
+    <div class="page-header">
+      <h1>Edit Product</h1>
+      <p>Update your product information</p>
+    </div>
+
+    <div class="form-container">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+        <div class="form-group">
+          <label for="name">Product Name *</label>
+          <input 
+            id="name" 
+            type="text" 
+            formControlName="name" 
+            placeholder="Enter product name"
+            [class.error]="productForm.get('name')?.invalid && productForm.get('name')?.touched"
+          >
+          @if (productForm.get('name')?.invalid && productForm.get('name')?.touched) {
+            <span class="error-message">Product name is required (min. 3 characters)</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description *</label>
+          <textarea 
+            id="description" 
+            formControlName="description" 
+            rows="4" 
+            placeholder="Describe your product in detail..."
+            [class.error]="productForm.get('description')?.invalid && productForm.get('description')?.touched"
+          ></textarea>
+          @if (productForm.get('description')?.invalid && productForm.get('description')?.touched) {
+            <span class="error-message">Description is required (min. 10 characters)</span>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Price (BHD) *</label>
+            <input 
+              id="price" 
+              type="number" 
+              step="0.01" 
+              min="0.01"
+              formControlName="price" 
+              placeholder="0.00"
+              [class.error]="productForm.get('price')?.invalid && productForm.get('price')?.touched"
+            >
+            @if (productForm.get('price')?.invalid && productForm.get('price')?.touched) {
+              <span class="error-message">Price must be greater than 0</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Stock Quantity *</label>
+            <input 
+              id="quantity" 
+              type="number" 
+              min="0"
+              formControlName="quantity" 
+              placeholder="1"
+              [class.error]="productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched"
+            >
+            @if (productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched) {
+              <span class="error-message">Please enter a valid stock quantity (minimum 1)</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Current Product Images</label>
+          <p class="form-hint">These are your existing product images. Click the × to remove them.</p>
+          @if (existingImagePreviews.length > 0) {
+            <div class="image-previews">
+              @for (preview of existingImagePreviews; track preview; let i = $index) {
+                <div class="image-preview existing">
+                  <img [src]="preview" [alt]="'Existing product image ' + (i + 1)">
+                  <button type="button" class="remove-image" (click)="removeExistingImage(i)" title="Remove image">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="no-images">No existing images</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="images">Add New Images</label>
+          <div class="file-upload-area">
+          <input 
+            #fileInput
+            id="images" 
+            type="file" 
+            multiple 
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            (change)="onFileSelect($event)"
+            class="file-input"
+          >
+            <label for="images" class="file-upload-label">
+              <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              <div class="upload-text">
+                <p>Click to upload or drag and drop</p>
+                <small>JPEG, PNG, WebP (MAX. 5MB per image)</small>
+              </div>
+            </label>
+          </div>
+          
+          @if (newImagePreviews.length > 0) {
+            <div class="image-previews">
+              @for (preview of newImagePreviews; track preview; let i = $index) {
+                <div class="image-preview new">
+                  <img [src]="preview" [alt]="'New product image ' + (i + 1)">
+                  <button type="button" class="remove-image" (click)="removeNewImage(i)" title="Remove image">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+            
+            <div class="image-actions">
+              <button type="button" (click)="clearAllNewImages()" class="btn-clear-images">Clear All New Images</button>
+            </div>
+          }
+          
+          <small class="form-hint">Add new images to supplement existing ones</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="cancel()" class="btn-cancel">Cancel</button>
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="productForm.invalid || isSubmitting"
+          >
+            @if (isSubmitting) {
+              <span class="spinner"></span>
+              Updating...
+            } @else {
+              Update Product
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

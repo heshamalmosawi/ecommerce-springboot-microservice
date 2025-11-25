@@ -31,6 +31,12 @@ export const routes: Routes = [
         loadComponent: () => import('./components/product-detail/product-detail').then(m => m.ProductDetail)
       },
       {
+        path: 'products/:id/edit',
+        loadComponent: () => import('./components/edit-product/edit-product').then(m => m.EditProductComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['seller'] }
+      },
+      {
         path: 'profile',
         component: Profile,
         canActivate: [authGuard]

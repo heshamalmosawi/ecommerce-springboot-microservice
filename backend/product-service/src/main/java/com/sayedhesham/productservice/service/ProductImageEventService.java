@@ -1,5 +1,7 @@
 package com.sayedhesham.productservice.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -34,12 +36,12 @@ public class ProductImageEventService {
 
     public void publishProductImageUploadEvent(String productId, String imageData, String contentType) {
         try {
-            ProductImageEvent event = new ProductImageEvent(
-                    productId,
-                    imageData,
-                    contentType,
-                    System.currentTimeMillis()
-            );
+            ProductImageEvent event = ProductImageEvent.builder()
+                    .productId(productId)
+                    .imageData(imageData)
+                    .contentType(contentType)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageUploadTopic, productId, eventJson);
@@ -52,12 +54,12 @@ public class ProductImageEventService {
 
     public void publishProductImageUpdateEvent(String productId, String imageData, String contentType) {
         try {
-            ProductImageEvent event = new ProductImageEvent(
-                    productId,
-                    imageData,
-                    contentType,
-                    System.currentTimeMillis()
-            );
+            ProductImageEvent event = ProductImageEvent.builder()
+                    .productId(productId)
+                    .imageData(imageData)
+                    .contentType(contentType)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageUpdateTopic, productId, eventJson);
@@ -70,11 +72,11 @@ public class ProductImageEventService {
 
     public void publishProductImageDeleteEvent(String productId, String imageMediaId) {
         try {
-            ProductImageDeleteEvent event = new ProductImageDeleteEvent(
-                    productId,
-                    imageMediaId,
-                    System.currentTimeMillis()
-            );
+            ProductImageDeleteEvent event = ProductImageDeleteEvent.builder()
+                    .productId(productId)
+                    .imageMediaId(imageMediaId)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
 
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(productImageDeleteTopic, productId, eventJson);
