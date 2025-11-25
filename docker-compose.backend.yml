@@ -1,0 +1,150 @@
+services:
+  # Kafka Services
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - backend-network
+
+  # Database Services
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=rootuser
+      - MONGO_INITDB_ROOT_PASSWORD=rootpass
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express:1.0.0
+    container_name: mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=rootuser
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=rootpass
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+
+  # Service Discovery
+  eureka-server:
+    build:
+      context: ./backend/eureka-service-discovery
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/apigateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - backend-network
+    depends_on:
+      - eureka-server
+      - product-service
+      - user-service
+      - media-service
+    restart: unless-stopped
+
+  # Microservices
+  product-service:
+    build:
+      context: ./backend/product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+      - eureka-server
+      - kafka
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+      - eureka-server
+      - kafka
+    restart: unless-stopped
+
+  media-service:
+    build:
+      context: ./backend/media-service
+      dockerfile: Dockerfile
+    container_name: media-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - media_storage:/app/media
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+      - eureka-server
+      - kafka
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+    driver: local
+  media_storage:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
