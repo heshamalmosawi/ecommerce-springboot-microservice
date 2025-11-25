@@ -3,6 +3,8 @@ package com.sayedhesham.productservice.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +33,10 @@ public class ProductService {
 
     public List<Product> getAll() {
         return prodRepo.findAll();
+    }
+
+    public Page<Product> getAll(Pageable pageable) {
+        return prodRepo.findAll(pageable);
     }
 
     public Product getById(String id) {
