@@ -1,0 +1,69 @@
+@if (totalPages > 1) {
+  <div class="pagination-container">
+    <div class="pagination-info">
+      <span>Showing {{ startItem }}-{{ endItem }} of {{ totalElements }} products</span>
+    </div>
+
+    <div class="pagination-controls">
+      <div class="page-size-selector">
+        <label for="page-size">Items per page:</label>
+        <select 
+          id="page-size" 
+          [value]="pageSize" 
+          (change)="onPageSizeChange(Number($any($event.target).value))"
+          class="page-size-select">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">
+              {{ size }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="pagination-nav">
+        <button 
+          class="pagination-btn" 
+          (click)="goToFirst()" 
+          [disabled]="currentPage === 0"
+          title="First page">
+          &laquo;
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          (click)="goToPrevious()" 
+          [disabled]="currentPage === 0"
+          title="Previous page">
+          &lsaquo;
+        </button>
+
+        <div class="page-numbers">
+          @for (page of pages; track page) {
+            <button 
+              class="page-btn"
+              [class.active]="page === currentPage"
+              (click)="onPageChange(page)">
+              {{ page + 1 }}
+            </button>
+          }
+        </div>
+
+        <button 
+          class="pagination-btn" 
+          (click)="goToNext()" 
+          [disabled]="currentPage === totalPages - 1"
+          title="Next page">
+          &rsaquo;
+        </button>
+        
+        <button 
+          class="pagination-btn" 
+          (click)="goToLast()" 
+          [disabled]="currentPage === totalPages - 1"
+          title="Last page">
+          &raquo;
+        </button>
+      </div>
+    </div>
+  </div>
+}

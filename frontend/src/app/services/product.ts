@@ -46,6 +46,24 @@ export interface CreateProductResponse {
   imageMediaIds: string[];
 }
 
+export interface ProductPage {
+  content: Product[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface PaginationParams {
+  page: number;
+  size: number;
+  sortBy: string;
+  sortDir: 'asc' | 'desc';
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -58,6 +76,23 @@ export class ProductService {
     return this.http.get<Product[]>(`${this.API_URL}/products`).pipe(
       catchError(error => {
         console.error('Error fetching products:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getProductsPaginated(params: PaginationParams): Observable<ProductPage> {
+    const { page, size, sortBy, sortDir } = params;
+    return this.http.get<ProductPage>(`${this.API_URL}/products`, {
+      params: {
+        page: page.toString(),
+        size: size.toString(),
+        sortBy,
+        sortDir
+      }
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching paginated products:', error);
         return throwError(() => error);
       })
     );
