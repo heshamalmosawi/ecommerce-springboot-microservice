@@ -10,7 +10,7 @@
         <select 
           id="page-size" 
           [value]="pageSize" 
-          (change)="onPageSizeChange($any($event.target).value)"
+          (change)="onPageSizeChange(Number($any($event.target).value))"
           class="page-size-select">
           @for (size of pageSizeOptions; track size) {
             <option [value]="size">
