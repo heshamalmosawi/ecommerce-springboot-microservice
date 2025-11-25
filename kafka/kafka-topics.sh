@@ -30,6 +30,7 @@ show_usage() {
     echo "  --create                   Create a new topic"
     echo "  --delete                   Delete a topic"
     echo "  --describe                 Describe a topic"
+    echo "  --create-default           Create all default e-commerce topics"
     echo "  --help                     Show this help"
     echo ""
     echo "Create Options:"
@@ -48,6 +49,7 @@ show_usage() {
     echo "  $0 --create --topic my-topic --partitions 3 --replication-factor 1"
     echo "  $0 --delete --topic my-topic"
     echo "  $0 --describe --topic my-topic"
+    echo "  $0 --create-default"
 }
 
 # List all topics
@@ -143,6 +145,26 @@ describe_topic() {
     fi
 }
 
+# Create default topics for the e-commerce project
+create_default_topics() {
+    echo -e "${GREEN}Creating default Kafka topics for e-commerce project...${NC}"
+    
+    # User Avatar Topics
+    create_topic --topic "user.avatar.upload" --partitions 3 --replication-factor 1
+    create_topic --topic "user.avatar.update" --partitions 3 --replication-factor 1
+    create_topic --topic "user.avatar.delete" --partitions 3 --replication-factor 1
+    
+    # Product Image Topics
+    create_topic --topic "product.image.upload" --partitions 3 --replication-factor 1
+    create_topic --topic "product.image.update" --partitions 3 --replication-factor 1
+    create_topic --topic "product.image.delete" --partitions 3 --replication-factor 1
+    
+    # Media Processing Topics
+    create_topic --topic "media.uploaded" --partitions 3 --replication-factor 1
+    
+    echo -e "${GREEN}All default topics created successfully!${NC}"
+}
+
 # Main script logic
 main() {
     check_kafka
@@ -167,6 +189,9 @@ main() {
         --describe)
             shift
             describe_topic "$@"
+            ;;
+        --create-default)
+            create_default_topics
             ;;
         --help)
             show_usage
