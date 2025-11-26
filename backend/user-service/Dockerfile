@@ -10,6 +10,6 @@ COPY src ./src
 RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests
 
-EXPOSE 8080
+EXPOSE 8443
 
 CMD ["java", "-jar", "target/userservice-0.0.1-SNAPSHOT.jar"]

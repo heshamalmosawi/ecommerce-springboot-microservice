@@ -10,7 +10,7 @@ COPY src ./src
 RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests
 
-EXPOSE 8080
+EXPOSE 8443
 
 COPY wait-for-services.sh .
 RUN chmod +x wait-for-services.sh
