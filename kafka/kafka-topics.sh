@@ -3,7 +3,7 @@
 # Kafka Topics Management Script
 # Wrapper for Docker-based Kafka topic operations
 
-BROKER_CONTAINER="broker"
+BROKER_CONTAINER="kafka"
 BOOTSTRAP_SERVER="localhost:9092"
 
 # Colors for output

@@ -18,7 +18,7 @@ public class ApigatewayApplication {
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration corsConfig = new CorsConfiguration();
 		corsConfig.setAllowCredentials(true);
-		corsConfig.addAllowedOriginPattern("*");
+		corsConfig.addAllowedOriginPattern("https://*");
 		corsConfig.addAllowedHeader("*");
 		corsConfig.addAllowedMethod("*");
 		
