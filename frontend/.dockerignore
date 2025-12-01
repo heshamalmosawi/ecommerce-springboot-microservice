@@ -1,0 +1,6 @@
+.gitignore
+opencode.json
+
+node_modules/
+.vscode/
+dist/

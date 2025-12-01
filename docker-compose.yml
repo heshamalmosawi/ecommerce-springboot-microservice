@@ -136,6 +136,20 @@ services:
       - media-service
     restart: unless-stopped
 
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+    container_name: frontend
+    ports:
+      - "2122:2122"
+    networks:
+      - backend-network
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
 volumes:
   mongo_data:
     driver: local
