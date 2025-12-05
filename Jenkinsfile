@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs('NodeJS') 
+    }
+
     stages {
         stage('Checkout & Setup') {
             steps {
@@ -18,6 +22,11 @@ pipeline {
 
                 sh 'java -version'
                 sh './backend/mvnw -version'
+
+                echo "Checking Node.js and Chromium versions..."
+                sh 'node --version'
+                sh 'npm --version'
+                sh 'google-chrome --version || echo "Chrome not found"'
             }
         }
 
