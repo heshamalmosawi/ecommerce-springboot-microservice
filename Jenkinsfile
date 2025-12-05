@@ -2,6 +2,13 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout & Setup') {
+            steps {
+                checkout scm
+                echo "Building branch: ${env.GIT_BRANCH}"
+            }
+        }
+
         stage('📋 Info') {
             steps {
                 echo "════════════════════════════════════════"
@@ -11,13 +18,6 @@ pipeline {
 
                 sh 'java -version'
                 sh './backend/mvnw -version'
-            }
-        }
-
-        stage('Checkout & Setup') {
-            steps {
-                checkout scm
-                echo "Building branch: ${env.GIT_BRANCH}"
             }
         }
 
