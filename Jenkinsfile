@@ -10,7 +10,7 @@ pipeline {
                 echo "════════════════════════════════════════"
 
                 sh 'java -version'
-                sh 'mvn -version'
+                sh './backend/mvnw -version'
             }
         }
 
@@ -24,7 +24,7 @@ pipeline {
         stage('Backend build & test') {
             steps {
                 dir('backend') {
-                    sh 'mvn -B -q clean install -T 2C'
+                    sh './mvnw -B -q clean install -T 2C'
                     echo "Backend build and tests completed successfully"
                 }
             }
