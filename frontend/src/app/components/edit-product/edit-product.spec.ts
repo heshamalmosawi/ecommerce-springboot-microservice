@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
 import { EditProductComponent } from './edit-product';
@@ -50,10 +51,18 @@ describe('EditProductComponent', () => {
       }
     };
 
+    // Configure default mock return values
+    mockProductService.getProductById.and.returnValue(of(mockProduct));
+    mockProductService.updateProduct.and.returnValue(of({ ...mockProduct }));
+    mockProductService.updateProductWithImages.and.returnValue(of({ ...mockProduct }));
+    mockAuthService.getCurrentUserValue.and.returnValue(mockUser);
+    mockAuthService.hasRole.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, EditProductComponent],
       providers: [
         FormBuilder,
+        provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         { provide: ProductService, useValue: mockProductService },
         { provide: AuthService, useValue: mockAuthService },
@@ -66,9 +75,6 @@ describe('EditProductComponent', () => {
 
     fixture = TestBed.createComponent(EditProductComponent);
     component = fixture.componentInstance;
-    
-    mockAuthService.getCurrentUserValue.and.returnValue(mockUser);
-    mockAuthService.hasRole.and.returnValue(true);
     
     fixture.detectChanges();
   });

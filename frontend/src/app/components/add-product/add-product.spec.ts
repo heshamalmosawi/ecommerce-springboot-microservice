@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AddProductComponent } from './add-product';
 
 describe('AddProductComponent', () => {
@@ -14,6 +16,8 @@ describe('AddProductComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule, AddProductComponent],
       providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
         { provide: Router, useValue: mockRouter }
       ]
     })
@@ -32,8 +36,7 @@ describe('AddProductComponent', () => {
     expect(component.productForm.contains('name')).toBeTruthy();
     expect(component.productForm.contains('description')).toBeTruthy();
     expect(component.productForm.contains('price')).toBeTruthy();
-    expect(component.productForm.contains('category')).toBeTruthy();
-    expect(component.productForm.contains('stock')).toBeTruthy();
+    expect(component.productForm.contains('quantity')).toBeTruthy();
   });
 
   it('should validate required fields', () => {
@@ -43,8 +46,7 @@ describe('AddProductComponent', () => {
     form.controls['name'].setValue('Test Product');
     form.controls['description'].setValue('Test Description');
     form.controls['price'].setValue('10.99');
-    form.controls['category'].setValue('electronics');
-    form.controls['stock'].setValue('5');
+    form.controls['quantity'].setValue('5');
 
     expect(form.valid).toBeTruthy();
   });

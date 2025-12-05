@@ -83,8 +83,8 @@ This starts:
 
 1. **Start Infrastructure Services**
    ```bash
-   docker-compose -f db/docker-compose.yml up -d
-   docker-compose -f kafka/docker-compose.yml up -d
+   docker compose -f db/docker compose.yml up -d
+   docker compose -f kafka/docker compose.yml up -d
    ```
 
 2. **Start Backend Services**
