@@ -5,11 +5,15 @@ pipeline {
         nodejs('NodeJS') 
     }
 
+    environment {
+        ROLLEDBACK = 'false'
+    }
+
     stages {
         stage('Checkout & Setup') {
             steps {
                 checkout scm
-                echo "Building branch: ${env.GIT_BRANCH}"
+                echo "Building branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}"
             }
         }
 
@@ -17,7 +21,7 @@ pipeline {
             steps {
                 echo "════════════════════════════════════════"
                 echo "Starting build #${env.BUILD_NUMBER}"
-                echo "Branch: ${env.GIT_BRANCH}"
+                echo "Branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}"
                 echo "════════════════════════════════════════"
 
                 sh 'java -version'
@@ -26,7 +30,7 @@ pipeline {
                 echo "Checking Node.js and Chromium versions..."
                 sh 'node --version'
                 sh 'npm --version'
-                sh 'google-chrome --version || echo "Chrome not found"'
+                sh 'google-chrome --version || { echo "Chrome not found"; exit 1; }'
             }
         }
 
@@ -50,26 +54,76 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
-            steps {
-            script {
-                // Build all services
-                sh 'docker compose build --parallel --no-cache'
-                
-                echo "Docker build completed successfully"
+        stage('Docker Operations') {
+            environment {
+                IMAGE_TAG = "${env.BUILD_NUMBER}"
             }
+
+            stages {
+                stage('Prepare Rollback In case of Error') {
+                    steps {
+                        script {
+                            if (fileExists('.prev_image_tag')) {
+                                env.PREV_IMAGE_TAG = readFile('.prev_image_tag').trim()
+                                echo "Previous image tag found: ${env.PREV_IMAGE_TAG}"
+                            } else {
+                                echo "No previous image tag found. This might be the first build."
+                            }
+                        }
+                    }
+                }
+
+                stage('Docker Build') {
+                    steps {
+                        script {
+                            sh "IMAGE_TAG=${env.IMAGE_TAG} docker compose build --parallel --no-cache"
+                            echo "Docker build completed successfully"
+                        }
+                    }
+                }
+
+                stage('Docker Deploy') {
+                    steps {
+                        script {
+                            echo "Deploying new image tag: ${env.IMAGE_TAG}"
+                            sh "IMAGE_TAG=${env.IMAGE_TAG} docker compose down || true"
+                            sh "IMAGE_TAG=${env.IMAGE_TAG} docker compose up -d --remove-orphans"
+
+                            echo "Docker deployment completed successfully"
+                            writeFile file: '.prev_image_tag', text: env.IMAGE_TAG
+                        }
+                    }
+                }
+            }
+
+            post {
+                failure {
+                    script {
+                        if (env.PREV_IMAGE_TAG) {
+                            echo "Deployment failed. Rolling back to previous image tag: ${env.PREV_IMAGE_TAG}"
+                            sh "IMAGE_TAG=${env.PREV_IMAGE_TAG} docker compose down || true"
+                            sh "IMAGE_TAG=${env.PREV_IMAGE_TAG} docker compose up -d --remove-orphans"
+                            env.ROLLEDBACK = 'true'
+                            echo "Rollback to previous image tag ${env.PREV_IMAGE_TAG} completed successfully"
+                        } else {
+                            echo "No previous image tag available for rollback."
+                        }
+                    }
+                }
             }
         }
-        
-        stage('Docker Deploy') {
-            steps {
-                script {
-                    sh 'docker compose down'
+    }
 
-                    // Deploy all services
-                    sh 'docker compose up -d --remove-orphans'
-                    
-                    echo "Docker deployment completed successfully"
+    post {
+        failure {
+            echo "Build #${env.BUILD_NUMBER} failed."
+        }
+        success {
+            script {
+                if (env.ROLLEDBACK == 'true') {
+                    echo "Build #${env.BUILD_NUMBER} succeeded after rollback."
+                } else {
+                    echo "Build #${env.BUILD_NUMBER} succeeded."
                 }
             }
         }
