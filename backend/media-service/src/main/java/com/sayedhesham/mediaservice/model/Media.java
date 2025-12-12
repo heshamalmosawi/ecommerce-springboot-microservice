@@ -7,12 +7,14 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Document(collection = "media")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 @Builder
 public class Media {
     @Id
