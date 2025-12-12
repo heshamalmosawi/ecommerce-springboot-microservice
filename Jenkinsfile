@@ -117,6 +117,25 @@ pipeline {
     post {
         failure {
             echo "Build #${env.BUILD_NUMBER} failed."
+            emailext(
+                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                mimeType: 'text/html',
+                body: """
+                        <html>
+                        <body>
+                            <p><img src="https://i.imgflip.com/2/7rgmen.jpg" alt="Sonic" /></p>
+                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                            <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                            <p><strong>Status:</strong> FAILED</p>
+                            <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: env.GIT_BRANCH}</p>
+
+
+                            <p>Please find details in the jenkins server log if needed.</p>
+                        </body>
+                        </html>
+                      """
+            )
         }
         success {
             script {
@@ -126,6 +145,28 @@ pipeline {
                     echo "Build #${env.BUILD_NUMBER} succeeded."
                 }
             }
+            emailext(
+                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                mimeType: 'text/html',
+                body: """
+                        <html>
+                        <body>
+                            <p><img src="https://i.imgflip.com/2/7rgmen.jpg" alt="Sonic" /></p>
+                            <p><strong>Job:</strong> ${env.JOB_NAME}</p>
+                            <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
+                            <p><strong>Status:</strong> SUCCESS</p>
+                            <p><strong>Rolled back?:</strong> ${env.ROLLEDBACK}</p>
+                            <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: env.GIT_BRANCH}</p>
+
+                            <p>Here is your Sonic:</p>
+
+                            <p>Please find details in the jenkins server log if needed.</p>
+                        </body>
+                        </html>
+                      """
+            )
         }
     }
+
 }
