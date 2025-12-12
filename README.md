@@ -149,6 +149,25 @@ All APIs are accessible through the API Gateway:
 - **MongoDB Data**: `mongo_data` (persistent)
 - **Media Storage**: `media_storage` (persistent)
 
+## 🔄 CI/CD Pipeline
+
+### Jenkins Pipeline Overview
+The `Jenkinsfile` implements a comprehensive CI/CD pipeline with:
+
+- **Multi-stage Build**: Parallel frontend/backend compilation and testing
+- **Docker Integration**: Automated container builds and deployments
+- **Rollback Capability**: Automatic rollback on deployment failures
+- **Email Notifications**: Build status alerts with detailed reports
+- **Quality Gates**: Unit tests, linting, and security scans
+
+### Pipeline Stages
+1. **Checkout & Setup**: Git operations and environment validation
+2. **Parallel Build**: Frontend (Angular) and Backend (Maven) compilation
+3. **Testing**: Unit tests execution for all services
+4. **Docker Build**: Container image creation for microservices
+5. **Deployment**: Rolling updates with health checks
+6. **Verification**: Post-deployment smoke tests
+
 ## 📝 Development Notes
 
 - **Service Registration**: Auto-register with Eureka on startup
