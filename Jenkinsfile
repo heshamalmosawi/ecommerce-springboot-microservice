@@ -130,7 +130,6 @@ pipeline {
                             <p><strong>Status:</strong> FAILED</p>
                             <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: env.GIT_BRANCH}</p>
 
-
                             <p>Please find details in the jenkins server log if needed.</p>
                         </body>
                         </html>
@@ -158,8 +157,6 @@ pipeline {
                             <p><strong>Status:</strong> SUCCESS</p>
                             <p><strong>Rolled back?:</strong> ${env.ROLLEDBACK}</p>
                             <p><strong>Branch:</strong> ${env.BRANCH_NAME ?: env.GIT_BRANCH}</p>
-
-                            <p>Here is your Sonic:</p>
 
                             <p>Please find details in the jenkins server log if needed.</p>
                         </body>
