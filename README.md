@@ -9,6 +9,8 @@ A modern e-commerce platform built with Spring Boot microservices and Angular fr
 - **Database**: MongoDB
 - **Messaging**: Apache Kafka
 - **API Gateway**: Spring Cloud Gateway with SSL
+- **Code Quality**: SonarQube for static analysis and security scanning
+- **CI/CD**: Jenkins pipeline with automated testing and deployment
 
 ## Services
 
@@ -22,15 +24,20 @@ A modern e-commerce platform built with Spring Boot microservices and Angular fr
 | Eureka Server | Service discovery |
 | MongoDB | Data persistence |
 | Kafka | Event streaming |
+| SonarQube | Code quality analysis and security scanning |
+| Jenkins | CI/CD pipeline automation |
 
 ## Quick Start
 
 ### Prerequisites
-- Java 17+
+- Java 21+
 - Node.js 18+
 - Maven 3.8+
 - Docker & Docker Compose
 - Git (for cloning)
+- Google Chrome (for testing)
+- Jenkins (for CI/CD pipeline)
+- SonarQube Server (for code quality analysis)
 
 ## 🚀 Production Deployment (Recommended)
 
@@ -55,6 +62,9 @@ This starts:
 - **API Gateway**: https://localhost:8443
 - **Eureka Dashboard**: http://localhost:8761
 - **Mongo Express**: http://localhost:8081
+- **SonarQube Dashboard**: http://localhost:9000
+- **Backend Analysis**: http://localhost:9000/dashboard?id=esouq
+- **Frontend Analysis**: http://localhost:9000/dashboard?id=ecommerce-frontend
 
 ## 🔧 Local Development
 
@@ -133,6 +143,52 @@ All APIs are accessible through the API Gateway:
 - Key: `frontend/certs/angular-dev.key`
 - Port: 4200
 
+## 🔍 Code Quality & Security
+
+### SonarQube Integration
+The project uses SonarQube for automated code quality analysis and security scanning:
+
+#### Setup Requirements
+```bash
+# Start SonarQube server
+docker run --name sonarqube -p 9000:9000 sonarqube:latest
+
+# Access dashboard at: http://localhost:9000
+# Default credentials: admin/admin
+```
+
+#### Analysis Process
+- **Backend Analysis**: Maven-based SonarQube integration with Java code scanning
+- **Frontend Analysis**: SonarScanner CLI for TypeScript/JavaScript code analysis
+- **Security Scanning**: Automated vulnerability and bug detection
+- **Quality Gates**: Automated quality thresholds with pipeline integration
+
+#### Quality Metrics Tracked
+- **Code Smells**: Maintainability issues and code quality problems
+- **Bugs**: Potential runtime errors and logic issues
+- **Vulnerabilities**: Security vulnerabilities and security hotspots
+- **Coverage**: Test coverage analysis (where available)
+- **Duplications**: Code redundancy detection
+
+### Continuous Quality Monitoring
+- **Automated Analysis**: Runs on every Jenkins build
+- **Dashboard Access**: Real-time quality metrics at http://localhost:9000
+- **Trend Tracking**: Historical quality data and improvements
+- **Integration**: Seamlessly integrated with CI/CD pipeline
+
+## 🔐 Code Review & Approval Process
+
+The project implements a structured code review and approval process for maintaining code quality and security. 
+
+**See [CODE_REVIEW_GUIDELINES.md](CODE_REVIEW_GUIDELINES.md) for detailed guidelines, pull request process, and approval requirements.**
+
+### Key Features
+- **Branch Protection**: Direct pushes to main are blocked
+- **Pull Requirement**: All changes must go through PR process  
+- **Quality Gates**: SonarQube analysis must pass before merge
+- **Admin Restrictions**: Even repository admins must follow review process
+- **Automated Quality**: Code quality analysis integrated with GitHub workflow
+
 ## 🏗️ Container Architecture
 
 ### Docker Network
@@ -154,19 +210,21 @@ All APIs are accessible through the API Gateway:
 ### Jenkins Pipeline Overview
 The `Jenkinsfile` implements a comprehensive CI/CD pipeline with:
 
-- **Multi-stage Build**: Parallel frontend/backend compilation and testing
+- **Multi-stage Build**: Frontend and backend compilation and testing
 - **Docker Integration**: Automated container builds and deployments
 - **Rollback Capability**: Automatic rollback on deployment failures
 - **Email Notifications**: Build status alerts with detailed reports
-- **Quality Gates**: Unit tests, linting, and security scans
+- **SonarQube Integration**: Automated code quality analysis and security scanning
+- **Quality Gates**: Automated quality checks with fallback mechanisms
 
 ### Pipeline Stages
 1. **Checkout & Setup**: Git operations and environment validation
-2. **Parallel Build**: Frontend (Angular) and Backend (Maven) compilation
-3. **Testing**: Unit tests execution for all services
-4. **Docker Build**: Container image creation for microservices
-5. **Deployment**: Rolling updates with health checks
-6. **Verification**: Post-deployment smoke tests
+2. **📋 Info**: Build information and tool version checks
+3. **Backend build & test**: Spring Boot compilation and testing
+4. **Frontend build & test**: Angular compilation and testing
+5. **SonarQube Analysis**: Backend and frontend code quality analysis
+6. **Quality Gate**: Automated quality check with fallback handling
+7. **Docker Operations**: Build, deploy with rollback capability
 
 ## 📝 Development Notes
 
@@ -176,4 +234,8 @@ The `Jenkinsfile` implements a comprehensive CI/CD pipeline with:
 - **Event Streaming**: Kafka topics created via `kafka/kafka-topics.sh`
 - **CORS**: Configured for HTTPS origins only
 - **Certificate Trust**: Frontend trusts API Gateway certificate in container
+- **SonarQube Token**: Authentication token configured in Jenkins pipeline
+- **Quality Analysis**: Automated code quality checks on every build
+- **Rollback Support**: Jenkins pipeline includes automatic rollback on deployment failures
+
 

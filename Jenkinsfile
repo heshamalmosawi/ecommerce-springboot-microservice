@@ -179,7 +179,7 @@ pipeline {
                 body: """
                         <html>
                         <body>
-                             <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" style="max-height: 100px; height: auto; width: auto;" /></p>
+                             <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" style="max-height: 300px; height: auto; width: auto;" /></p>
                             <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                             <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
                             <p><strong>Status:</strong> FAILED</p>
@@ -206,7 +206,7 @@ pipeline {
                 body: """
                         <html>
                         <body>
-                             <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" style="max-height: 100px; height: auto; width: auto;" /></p>
+                             <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" style="max-height: 300px; height: auto; width: auto;" /></p>
                             <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                             <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
                             <p><strong>Status:</strong> SUCCESS</p>
