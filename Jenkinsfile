@@ -7,6 +7,8 @@ pipeline {
 
     environment {
         ROLLEDBACK = 'false'
+        SONARQUBE_ENV = 'local-sonar'
+        SONAR_TOKEN = 'squ_79c1a6261ce4b4eff8aaa5a058afdd197b433494'
     }
 
     stages {
@@ -50,6 +52,45 @@ pipeline {
                     sh 'npm test'
                     sh 'npm run build -- --configuration production'
                     echo "Frontend build and tests completed successfully"
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    dir('backend') {
+                        sh "./mvnw -B -q sonar:sonar " +
+                           "-Dsonar.projectKey=esouq " +
+                           "-Dsonar.projectName='esouq' " +
+                           "-Dsonar.sources=src/main/java " +
+                           "-Dsonar.tests=src/test/java " +
+                           "-Dsonar.java.binaries=target " +
+                           "-Dsonar.token=${SONAR_TOKEN}"
+                    }
+                    dir('frontend') {
+                        sh """
+                            sonar-scanner \
+                              -Dsonar.projectKey=ecommerce-frontend \
+                              -Dsonar.projectName='Ecommerce Frontend' \
+                              -Dsonar.sources=src \
+                              -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                              -Dsonar.token=${SONAR_TOKEN}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
                 }
             }
         }
@@ -124,7 +165,7 @@ pipeline {
                 body: """
                         <html>
                         <body>
-                            <p><img src="https://i.imgflip.com/2/7rgmen.jpg" alt="Sonic" /></p>
+                            <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" /></p>
                             <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                             <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
                             <p><strong>Status:</strong> FAILED</p>
@@ -151,7 +192,7 @@ pipeline {
                 body: """
                         <html>
                         <body>
-                            <p><img src="https://i.imgflip.com/2/7rgmen.jpg" alt="Sonic" /></p>
+                            <p><img src="https://wgplnsqonmpsfotdngjm.supabase.co/storage/v1/object/public/test/image.jpeg" alt="Sonic" /></p>
                             <p><strong>Job:</strong> ${env.JOB_NAME}</p>
                             <p><strong>Build:</strong> #${env.BUILD_NUMBER}</p>
                             <p><strong>Status:</strong> SUCCESS</p>
