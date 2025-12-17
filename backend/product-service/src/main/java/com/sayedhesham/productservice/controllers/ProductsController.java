@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
+import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
@@ -45,6 +46,34 @@ public class ProductsController {
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
             Page<Product> productPage = prodService.getAll(pageable);
             return ResponseEntity.ok(productPage);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Object> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String sellerName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        try {
+            Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            
+            ProductSearchRequest searchRequest = ProductSearchRequest.builder()
+                    .name(name)
+                    .minPrice(minPrice)
+                    .maxPrice(maxPrice)
+                    .sellerName(sellerName)
+                    .build();
+            
+            var result = prodService.searchProducts(searchRequest, pageable);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
