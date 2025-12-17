@@ -64,6 +64,17 @@ export interface PaginationParams {
   sortDir: 'asc' | 'desc';
 }
 
+export interface SearchParams {
+  name?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sellerName?: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -207,5 +218,36 @@ export class ProductService {
         return throwError(() => new Error(errorMessage));
       })
     );
+  }
+
+  searchProducts(searchParams: SearchParams): Observable<ProductPage> {
+    const params = this.buildSearchParams(searchParams);
+    return this.http.get<ProductPage>(`${this.API_URL}/products/search`, { params }).pipe(
+      catchError(error => {
+        console.error('Error searching products:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  private buildSearchParams(searchParams: SearchParams): any {
+    const params: any = {};
+    
+    if (searchParams.name) params.name = searchParams.name;
+    if (searchParams.minPrice !== undefined) params.minPrice = searchParams.minPrice;
+    if (searchParams.maxPrice !== undefined) params.maxPrice = searchParams.maxPrice;
+    if (searchParams.sellerName) params.sellerName = searchParams.sellerName;
+    if (searchParams.page !== undefined) params.page = searchParams.page;
+    if (searchParams.size !== undefined) params.size = searchParams.size;
+    if (searchParams.sortBy) params.sortBy = searchParams.sortBy;
+    if (searchParams.sortDir) params.sortDir = searchParams.sortDir;
+    
+    // Set defaults for pagination and sorting if not provided
+    if (params.page === undefined) params.page = 0;
+    if (params.size === undefined) params.size = 12;
+    if (params.sortBy === undefined) params.sortBy = 'name';
+    if (params.sortDir === undefined) params.sortDir = 'asc';
+    
+    return params;
   }
 }
