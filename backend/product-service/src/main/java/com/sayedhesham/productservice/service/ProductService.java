@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
+import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
@@ -37,6 +38,64 @@ public class ProductService {
 
     public Page<Product> getAll(Pageable pageable) {
         return prodRepo.findAll(pageable);
+    }
+
+    public Page<ProductResponseDTO> searchProducts(ProductSearchRequest searchRequest, Pageable pageable) {
+        Page<Product> products;
+        
+        String name = searchRequest.getName();
+        Double minPrice = searchRequest.getMinPrice();
+        Double maxPrice = searchRequest.getMaxPrice();
+        String sellerName = searchRequest.getSellerName();
+        
+        List<String> userIds = null;
+        if (sellerName != null && !sellerName.trim().isEmpty()) {
+            userIds = userRepo.findByNameContainingIgnoreCase(sellerName)
+                    .stream()
+                    .map(User::getId)
+                    .toList();
+        }
+        
+        if (name != null && minPrice != null && maxPrice != null && userIds != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIds(
+                    name, minPrice, maxPrice, userIds, pageable);
+        } else if (name != null && minPrice != null && maxPrice != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetween(
+                    name, minPrice, maxPrice, pageable);
+        } else if (name != null && userIds != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndUserIds(
+                    name, userIds, pageable);
+        } else if (minPrice != null && maxPrice != null && userIds != null) {
+            products = prodRepo.findByPriceBetweenAndUserIds(
+                    minPrice, maxPrice, userIds, pageable);
+        } else if (name != null) {
+            products = prodRepo.findByNameContainingIgnoreCase(name, pageable);
+        } else if (minPrice != null && maxPrice != null) {
+            products = prodRepo.findByPriceBetween(minPrice, maxPrice, pageable);
+        } else if (userIds != null) {
+            products = prodRepo.findByUserIds(userIds, pageable);
+        } else {
+            products = prodRepo.findAll(pageable);
+        }
+        
+        return products.map(this::convertToProductResponseDTO);
+    }
+    
+    private ProductResponseDTO convertToProductResponseDTO(Product product) {
+        User seller = userRepo.findById(product.getUserId())
+                .orElse(null);
+        
+        String sellerName = seller != null ? seller.getName() : "Unknown Seller";
+        
+        return ProductResponseDTO.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .sellerName(sellerName)
+                .imageMediaIds(product.getImageMediaIds())
+                .build();
     }
 
     public Product getById(String id) {

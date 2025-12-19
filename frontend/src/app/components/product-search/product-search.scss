@@ -1,0 +1,186 @@
+.search-sidebar {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+
+  .search-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+
+    .search-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+
+      .search-icon {
+        width: 20px;
+        height: 20px;
+        color: #3b82f6;
+      }
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #64748b;
+
+      &:hover {
+        background: #e2e8f0;
+        color: #334155;
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  .search-content {
+    padding: 1.25rem 1rem;
+    transition: all 0.3s ease;
+
+    &.hidden {
+      opacity: 0;
+      max-height: 0;
+      padding: 0 1rem;
+      overflow: hidden;
+    }
+  }
+
+  .search-form {
+    .form-group {
+      margin-bottom: 1.25rem;
+
+      .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+      }
+
+      .form-input,
+      .form-select {
+        width: 90%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background: white;
+
+        &:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        &::placeholder {
+          color: #9ca3af;
+        }
+      }
+
+      .price-range {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .form-input {
+          flex: 1;
+        }
+
+        .price-separator {
+          color: #6b7280;
+          font-weight: 500;
+          padding: 0 0.25rem;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #e5e7eb;
+
+      .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1;
+
+        .btn-icon {
+          width: 16px;
+          height: 16px;
+        }
+
+        &.btn-secondary {
+          background: #f3f4f6;
+          color: #4b5563;
+          border: 1px solid #d1d5db;
+
+          &:hover {
+            background: #e5e7eb;
+            color: #374151;
+          }
+        }
+      }
+    }
+  }
+
+  // Collapsed state
+  &.collapsed {
+    .search-header .toggle-btn svg {
+      transform: rotate(180deg);
+    }
+
+    .search-content.hidden {
+      opacity: 0;
+      max-height: 0;
+      padding: 0 1rem;
+      overflow: hidden;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .search-sidebar {
+    position: relative;
+    top: 0;
+    margin-bottom: 1.5rem;
+    
+    &.collapsed {
+      .search-content.hidden {
+        padding: 0;
+      }
+    }
+  }
+}
