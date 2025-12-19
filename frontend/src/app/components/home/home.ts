@@ -86,7 +86,7 @@ export class Home implements OnInit {
   }
 
   onSearchChanged(filters: SearchParams) {
-    this.currentSearchFilters = { ...filters };
+    this.currentSearchFilters = filters ;
     this.currentPage = 0; // Reset to first page when search changes
     
     // Check if there are active filters

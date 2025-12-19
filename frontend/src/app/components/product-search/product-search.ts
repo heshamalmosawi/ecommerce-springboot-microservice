@@ -66,8 +66,8 @@ export class ProductSearchComponent implements OnInit, OnDestroy {
     // Build search filters
     const filters: SearchFilters = {
       name: formValues.name || undefined,
-      minPrice: formValues.minPrice || undefined,
-      maxPrice: formValues.maxPrice || undefined,
+      minPrice: formValues.minPrice ?? undefined,
+      maxPrice: formValues.maxPrice ?? undefined,
       sellerName: formValues.sellerName || undefined,
       sortBy: formValues.sortBy,
       sortDir: formValues.sortDir,
