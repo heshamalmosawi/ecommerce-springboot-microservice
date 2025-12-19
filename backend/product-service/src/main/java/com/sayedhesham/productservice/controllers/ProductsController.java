@@ -62,16 +62,28 @@ public class ProductsController {
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
         try {
+            if (minPrice != null && minPrice < 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("minPrice cannot be negative");
+            }
+            if (maxPrice != null && maxPrice < 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("maxPrice cannot be negative");
+            }
+            if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("minPrice cannot be greater than maxPrice");
+            }
+
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            
+
             ProductSearchRequest searchRequest = ProductSearchRequest.builder()
                     .name(name)
                     .minPrice(minPrice)
                     .maxPrice(maxPrice)
                     .sellerName(sellerName)
                     .build();
-            
             var result = prodService.searchProducts(searchRequest, pageable);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
