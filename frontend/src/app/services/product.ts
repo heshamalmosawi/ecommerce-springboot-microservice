@@ -237,16 +237,14 @@ export class ProductService {
     if (searchParams.minPrice !== undefined) params.minPrice = searchParams.minPrice;
     if (searchParams.maxPrice !== undefined) params.maxPrice = searchParams.maxPrice;
     if (searchParams.sellerName) params.sellerName = searchParams.sellerName;
-    if (searchParams.page !== undefined) params.page = searchParams.page;
-    if (searchParams.size !== undefined) params.size = searchParams.size;
-    if (searchParams.sortBy) params.sortBy = searchParams.sortBy;
-    if (searchParams.sortDir) params.sortDir = searchParams.sortDir;
-    
-    // Set defaults for pagination and sorting if not provided
-    if (params.page === undefined) params.page = 0;
-    if (params.size === undefined) params.size = 12;
-    if (params.sortBy === undefined) params.sortBy = 'name';
-    if (params.sortDir === undefined) params.sortDir = 'asc';
+
+    // Pagination: preserve explicit 0 values, default only when undefined
+    params.page = searchParams.page === undefined ? 0 : searchParams.page;
+    params.size = searchParams.size === undefined ? 12 : searchParams.size;
+
+    // Sorting: preserve existing truthy semantics (fallback when falsy)
+    params.sortBy = searchParams.sortBy ? searchParams.sortBy : 'name';
+    params.sortDir = searchParams.sortDir ? searchParams.sortDir : 'asc';
     
     return params;
   }
