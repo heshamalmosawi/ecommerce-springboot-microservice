@@ -32,8 +32,11 @@
               <h3 class="product-name">{{ product.name }}</h3>
               <p class="product-description">{{ product.description }}</p>
               <div class="product-footer">
-                <span class="product-price">${{ product.price.toFixed(2) }}</span>
-                <span class="product-quantity">{{ product.quantity }} in stock</span>
+                <div class="price-quantity">
+                  <span class="product-price">${{ product.price.toFixed(2) }}</span>
+                  <span class="product-quantity">{{ product.quantity }} in stock</span>
+                </div>
+                <button (click)="addtoCart(product); $event.stopPropagation()">🛒 Add to Cart</button>
               </div>
             </div>
           </div>

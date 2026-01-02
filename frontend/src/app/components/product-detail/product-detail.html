@@ -49,9 +49,30 @@
               <p><strong>Seller:</strong> {{ product.sellerName }}</p>
             </div>
             
-            @if (isProductOwner()) {
-              <div class="product-actions">
+            <div class="product-actions">
+              @if (!isProductOwner()) {
+                <button 
+                  (click)="addToCart()" 
+                  class="btn-add-to-cart"
+                  [disabled]="addingToCart || !product || product.quantity === 0"
+                >
+                  @if (addingToCart) {
+                    <span class="btn-spinner"></span>
+                    Adding...
+                  } @else {
+                    🛒 Add to Cart
+                  }
+                </button>
+              }
+              
+              @if (isProductOwner()) {
                 <button (click)="editProduct()" class="btn-edit">Edit Product</button>
+              }
+            </div>
+            
+            @if (cartMessage) {
+              <div class="cart-message" [class.success]="cartMessage.includes('success')" [class.error]="cartMessage.includes('Failed')">
+                {{ cartMessage }}
               </div>
             }
           </div>
