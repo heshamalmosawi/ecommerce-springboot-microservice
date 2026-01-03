@@ -2,10 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-cart',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './cart.html',
   styleUrl: './cart.scss'
 })
@@ -18,7 +19,7 @@ export class CartComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.cartSubscription = this.cartService.cart$.subscribe(items => {
       this.items = items;
-      console.log(this.items);
+      console.log('Cart items updated:', this.items);
     });
   }
 
@@ -40,5 +41,9 @@ export class CartComponent implements OnInit, OnDestroy {
       console.log('Removing item:', item);
       this.cartService.removeItem(item.id);
     }
+  }
+
+  getCartTotal(): number {
+    return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
 }
