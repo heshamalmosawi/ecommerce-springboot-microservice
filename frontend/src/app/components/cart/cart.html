@@ -1,0 +1,26 @@
+<div class="cart-container">
+    <div class="cart-card-wrapper">
+        <h1>Cart</h1>
+        @if(items.length === 0){
+        <p> No items found </p>
+        }
+        @else {
+        <div class="items">
+            @for (item of items; track $index) {
+            <div class="item">
+                <div class="product-info">
+                    <img src={{item.imageUrl}} />
+                    <p> {{item.name}} </p>
+                </div>
+                <div>
+                    <button class="inc-btns" (click)="decrementQuantity(item)"> - </button>
+                    <button class="quantity" disabled> {{item.quantity}}</button>
+                    <button class="inc-btns" (click)="incrementQuantity(item)"> + </button>
+                </div>
+                <p> ${{(item.quantity * item.price).toFixed(2)}} </p>
+            </div>
+            }
+        </div>
+        }
+    </div>
+</div>

@@ -16,7 +16,7 @@ export class CartService {
     totalItems$ = this.cart$.pipe(map(items => items.reduce((sum, item) => sum + item.quantity, 0)));
     totalPrice$ = this.cart$.pipe(map(items => items.reduce((sum, item) => sum + item.price * item.quantity, 0)));
 
-    constructor(){
+    constructor() {
         this.cart$.subscribe(cart => localStorage.setItem('cart', JSON.stringify(cart)));
     }
 
@@ -24,7 +24,7 @@ export class CartService {
         const data = localStorage.getItem('cart');
         return data ? JSON.parse(data) : [];
     }
-    
+
     addOrUpdateItem(item: Product, increment?: boolean) {
         const cart = this.cart.value;
         const existing = cart.find(p => p.id == item.id);
@@ -43,13 +43,18 @@ export class CartService {
         const totalQuantity = this.cart.value.reduce((sum, item) => sum + item.quantity, 0);
         console.log(`Total quantity in cart:`, totalQuantity);
     }
-    
+
     removeItem(id: string) {
         this.cart.next(
-            this.cart.value.filter(p => p.id == id)
+            this.cart.value.filter(p => p.id !== id)
         );
     }
-    clear(){
+
+    clear() {
         this.cart.next([]);
+    }
+
+    get cartValue(): Product[] {
+        return this.cart.value;
     }
 }
