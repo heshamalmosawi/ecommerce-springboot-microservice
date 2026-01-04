@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ProductService, Product, ProductPage, PaginationParams } from '../../services/product';
 import { environment } from '../../../environments/environment';
 import { PaginationComponent } from '../pagination/pagination';
+import { CartService } from '../../services/cart';
 
 @Component({
   selector: 'app-home',
@@ -25,7 +26,7 @@ export class Home implements OnInit {
   sortBy: string = 'name';
   sortDir: 'asc' | 'desc' = 'asc';
 
-  constructor(private productService: ProductService, private http: HttpClient, private router: Router) {}
+  constructor(private productService: ProductService, private cartService: CartService, private http: HttpClient, private router: Router) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -88,5 +89,9 @@ export class Home implements OnInit {
     this.pageSize = newSize;
     this.currentPage = 0; // Reset to first page
     this.loadProducts();
+  }
+
+  addToCart(product: Product): void {
+    this.cartService.addOrUpdateItem({ ...product, quantity: 1 });
   }
 }

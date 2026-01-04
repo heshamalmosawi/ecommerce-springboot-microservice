@@ -5,6 +5,7 @@ import { AuthComponent } from './components/auth/auth';
 import { Profile } from './components/profile/profile';
 import { authGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
+import { CartComponent } from './components/cart/cart';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,10 @@ export const routes: Routes = [
       {
         path: 'auth',
         component: AuthComponent
+      },
+      {
+        path: 'cart',
+        component: CartComponent
       },
       {
         path: 'products/add',

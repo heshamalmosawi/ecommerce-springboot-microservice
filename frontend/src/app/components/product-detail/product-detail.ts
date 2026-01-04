@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { AuthService } from '../../services/auth';
+import { CartService } from '../../services/cart';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
@@ -16,12 +17,15 @@ export class ProductDetail implements OnInit {
   product: Product | null = null;
   loading: boolean = false;
   error: string | null = null;
+  addingToCart: boolean = false;
+  cartMessage: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
     private authService: AuthService,
+    private cartService: CartService,
     private http: HttpClient
   ) {}
 
@@ -115,6 +119,21 @@ export class ProductDetail implements OnInit {
     if (this.product) {
       this.router.navigate(['/products', this.product.id, 'edit']);
     }
+  }
+
+  addToCart() {
+    if (!this.product) return;
+    
+    this.addingToCart = true;
+    this.cartMessage = null;
+
+    const productToAdd = { ...this.product, quantity: 1 };
+    this.cartService.addOrUpdateItem(productToAdd);
+    this.cartMessage = 'Added to cart successfully!';
+
+    setTimeout(() => {
+      this.cartMessage = null;
+    }, 3000);
   }
 
   goBack() {
