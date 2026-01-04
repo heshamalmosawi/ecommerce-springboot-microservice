@@ -126,23 +126,14 @@ export class ProductDetail implements OnInit {
     
     this.addingToCart = true;
     this.cartMessage = null;
-    
-    try {
-      const productToAdd = { ...this.product, quantity: 1 };
-      this.cartService.addOrUpdateItem(productToAdd);
-      this.cartMessage = 'Added to cart successfully!';
-      
-      setTimeout(() => {
-        this.cartMessage = null;
-      }, 3000);
-    } catch (error) {
-      this.cartMessage = 'Failed to add to cart';
-      setTimeout(() => {
-        this.cartMessage = null;
-      }, 3000);
-    } finally {
-      this.addingToCart = false;
-    }
+
+    const productToAdd = { ...this.product, quantity: 1 };
+    this.cartService.addOrUpdateItem(productToAdd);
+    this.cartMessage = 'Added to cart successfully!';
+
+    setTimeout(() => {
+      this.cartMessage = null;
+    }, 3000);
   }
 
   goBack() {

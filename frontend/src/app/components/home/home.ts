@@ -91,7 +91,7 @@ export class Home implements OnInit {
     this.loadProducts();
   }
 
-  addtoCart(product: Product): void {
+  addToCart(product: Product): void {
     this.cartService.addOrUpdateItem({ ...product, quantity: 1 });
   }
 }
