@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
@@ -6,10 +6,11 @@ import { AuthService } from '../../services/auth';
 import { CartService } from '../../services/cart';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Toast } from '../toast/toast';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CommonModule],
+  imports: [CommonModule, Toast],
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.scss'
 })
@@ -18,7 +19,8 @@ export class ProductDetail implements OnInit {
   loading: boolean = false;
   error: string | null = null;
   addingToCart: boolean = false;
-  cartMessage: string | null = null;
+
+  @ViewChild(Toast) toast!: Toast;
 
   constructor(
     private route: ActivatedRoute,
@@ -123,17 +125,13 @@ export class ProductDetail implements OnInit {
 
   addToCart() {
     if (!this.product) return;
-    
+
     this.addingToCart = true;
-    this.cartMessage = null;
 
     const productToAdd = { ...this.product, quantity: 1 };
     this.cartService.addOrUpdateItem(productToAdd);
-    this.cartMessage = 'Added to cart successfully!';
-
-    setTimeout(() => {
-      this.cartMessage = null;
-    }, 3000);
+    this.addingToCart = false;
+    this.toast.show('Added to cart successfully!', 'success');
   }
 
   goBack() {

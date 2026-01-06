@@ -1,4 +1,6 @@
 <div class="product-detail-container">
+  <app-toast />
+
   @if (loading) {
     <div class="loading-state">
       <div class="spinner"></div>
@@ -69,12 +71,6 @@
                 <button (click)="editProduct()" class="btn-edit">Edit Product</button>
               }
             </div>
-            
-            @if (cartMessage) {
-              <div class="cart-message" [class.success]="cartMessage.includes('success')" [class.error]="cartMessage.includes('Failed')">
-                {{ cartMessage }}
-              </div>
-            }
           </div>
         </div>
       </div>

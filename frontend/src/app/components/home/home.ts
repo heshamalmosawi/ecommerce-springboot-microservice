@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -6,10 +6,11 @@ import { ProductService, Product, ProductPage, PaginationParams } from '../../se
 import { environment } from '../../../environments/environment';
 import { PaginationComponent } from '../pagination/pagination';
 import { CartService } from '../../services/cart';
+import { Toast } from '../toast/toast';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, PaginationComponent],
+  imports: [CommonModule, PaginationComponent, Toast],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
@@ -17,7 +18,9 @@ export class Home implements OnInit {
   products: Product[] = [];
   loading: boolean = false;
   error: string | null = null;
-  
+
+  @ViewChild(Toast) toast!: Toast;
+
   // Pagination properties
   currentPage: number = 0;
   pageSize: number = 12;
@@ -93,5 +96,6 @@ export class Home implements OnInit {
 
   addToCart(product: Product): void {
     this.cartService.addOrUpdateItem({ ...product, quantity: 1 });
+    this.toast.show('Added to cart successfully!', 'success');
   }
 }
