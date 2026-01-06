@@ -9,13 +9,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Skip adding token to auth endpoints (but not authenticate)
-  const authEndpoints = ['/auth/login', '/auth/register'];
-  const isAuthEndpoint = authEndpoints.some(endpoint => req.url.includes(endpoint));
-
-  if (!isAuthEndpoint) {
+  // Skip adding token to the /auth endpoint
+  if (!req.url.includes('/auth')) {
     const token = authService.getToken();
-    
+
     if (token) {
       req = req.clone({
         setHeaders: {
@@ -30,7 +27,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         // Token expired or invalid
         authService.logout();
-        router.navigate(['/auth/login']);
+        router.navigate(['/auth']);
       }
       return throwError(() => error);
     })

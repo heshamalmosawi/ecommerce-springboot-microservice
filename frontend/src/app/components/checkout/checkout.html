@@ -1,0 +1,174 @@
+<div class="checkout-container">
+  <div class="checkout-header">
+    <h1>Checkout</h1>
+    <p class="checkout-subtitle">Complete your purchase</p>
+  </div>
+
+  @if (items.length === 0) {
+    <div class="empty-cart">
+      <div class="empty-cart-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Add some items to your cart before checkout.</p>
+      <a href="/" class="continue-shopping-btn">Continue Shopping</a>
+    </div>
+  }
+
+  @else {
+    <div class="checkout-content">
+      <div class="checkout-forms">
+        <div class="form-section">
+          <h2>Shipping Information</h2>
+          <form [formGroup]="checkoutForm" class="checkout-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  formControlName="fullName"
+                  placeholder="John Doe"
+                  class="form-input"
+                />
+                @if (checkoutForm.get('fullName')?.invalid && checkoutForm.get('fullName')?.touched) {
+                  <div class="error-message">Full name is required</div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="john@example.com"
+                  class="form-input"
+                />
+                @if (checkoutForm.get('email')?.invalid && checkoutForm.get('email')?.touched) {
+                  <div class="error-message">Valid email is required</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                placeholder="+973 1234 5678"
+                class="form-input"
+              />
+              @if (checkoutForm.get('phone')?.invalid && checkoutForm.get('phone')?.touched) {
+                <div class="error-message">Valid phone number is required</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="address">Address</label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                placeholder="Street address, building, floor, apartment"
+                class="form-input"
+              />
+              @if (checkoutForm.get('address')?.invalid && checkoutForm.get('address')?.touched) {
+                <div class="error-message">Address is required</div>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city">City</label>
+                <input
+                  id="city"
+                  type="text"
+                  formControlName="city"
+                  placeholder="Manama"
+                  class="form-input"
+                />
+                @if (checkoutForm.get('city')?.invalid && checkoutForm.get('city')?.touched) {
+                  <div class="error-message">City is required</div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="postalCode">Postal Code</label>
+                <input
+                  id="postalCode"
+                  type="text"
+                  formControlName="postalCode"
+                  placeholder="12345"
+                  class="form-input"
+                />
+                @if (checkoutForm.get('postalCode')?.invalid && checkoutForm.get('postalCode')?.touched) {
+                  <div class="error-message">Postal code is required</div>
+                }
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <div class="checkout-summary">
+        <div class="summary-card">
+          <h3>Order Summary</h3>
+          <div class="items-list">
+            @for (item of items; track item.id) {
+              <div class="summary-item">
+                <div class="item-info">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                </div>
+                <span class="item-price">${{ (item.price * item.quantity).toFixed(2) }}</span>
+              </div>
+            }
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-row">
+            <span>Subtotal ({{ items.length }} items)</span>
+            <span>${{ getCartTotal() | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span>Free</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <span>${{ getCartTotal() | number:'1.2-2' }}</span>
+          </div>
+          <button
+            class="place-order-btn"
+            (click)="onSubmit()"
+            [disabled]="checkoutForm.invalid || isSubmitting"
+          >
+            @if (isSubmitting) {
+              <span class="btn-spinner"></span>
+              Processing...
+            } @else {
+              Place Order
+            }
+          </button>
+        </div>
+
+        <div class="payment-section">
+          <h3>Payment Method</h3>
+          <div class="payment-method">
+            <div class="payment-option selected">
+              <div class="payment-icon">💵</div>
+              <div class="payment-details">
+                <span class="payment-name">Cash on Delivery</span>
+                <span class="payment-description">Pay when you receive your order</span>
+              </div>
+              <div class="payment-badge">✓</div>
+            </div>
+          </div>
+          <p class="payment-note">
+            <span class="note-icon">ℹ️</span>
+            Online payments coming soon. Currently, cash on delivery is the only available payment option.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
