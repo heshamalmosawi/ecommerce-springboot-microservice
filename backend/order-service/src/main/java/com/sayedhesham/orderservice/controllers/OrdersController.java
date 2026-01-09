@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
-import com.sayedhesham.orderservice.model.Order;
-import com.sayedhesham.orderservice.service.OrderService;
+import com.sayedhesham.orderservice.service.OrderSagaOrchestrator;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/")
 class OrdersController {
+    
     @Autowired
-    private OrderService orderService;
+    private OrderSagaOrchestrator orderSagaOrchestrator;
 
     /** This is to get MY orders */
     @GetMapping
@@ -30,7 +30,7 @@ class OrdersController {
     @PostMapping
     public ResponseEntity<Object> addOrder(@Valid @RequestBody OrderDTO orderDTO) {
         try {
-            return ResponseEntity.ok(orderService.create(orderDTO));
+            return ResponseEntity.ok(orderSagaOrchestrator.startOrderSaga(orderDTO));
         } catch (IllegalArgumentException iae) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
         } catch (IllegalStateException ise) {

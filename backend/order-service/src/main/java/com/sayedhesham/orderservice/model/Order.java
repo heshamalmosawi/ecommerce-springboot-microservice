@@ -10,13 +10,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 @Document(collection = "orders")
 public class Order {
+
     @Id
     private String id;
 
@@ -38,9 +41,17 @@ public class Order {
 
     private Double totalPrice;
 
-    private String status;
+    private OrderStatus status;
 
-    private LocalDateTime orderDate;
+    private LocalDateTime createdAt;
 
-    private String cancellationReason;
+    private LocalDateTime updatedAt;
+
+    public enum OrderStatus {
+        PENDING,
+        PROCESSING,
+        SHIPPED,
+        DELIVERED,
+        FAILED
+    }
 }
