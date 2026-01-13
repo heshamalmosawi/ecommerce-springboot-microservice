@@ -37,7 +37,7 @@ public class OrderDTO {
     String city;
     
     @NotBlank
-    @Pattern(regexp = "\\d{4,10}")
+    @Pattern(regexp = "\\d{3,10}")
     String postalCode;  // Flexible
 
     @NotNull

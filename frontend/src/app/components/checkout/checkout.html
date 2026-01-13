@@ -1,4 +1,5 @@
 <div class="checkout-container">
+  <app-toast />
   <div class="checkout-header">
     <h1>Checkout</h1>
     <p class="checkout-subtitle">Complete your purchase</p>
@@ -50,16 +51,16 @@
             </div>
 
             <div class="form-group">
-              <label for="phone">Phone Number</label>
+              <label for="internationalPhone">Phone Number</label>
               <input
-                id="phone"
+                id="internationalPhone"
                 type="tel"
-                formControlName="phone"
+                formControlName="internationalPhone"
                 placeholder="+973 1234 5678"
                 class="form-input"
               />
-              @if (checkoutForm.get('phone')?.invalid && checkoutForm.get('phone')?.touched) {
-                <div class="error-message">Valid phone number is required</div>
+              @if (checkoutForm.get('internationalPhone')?.invalid && checkoutForm.get('internationalPhone')?.touched) {
+                <div class="error-message">Phone must be in E.164 format (e.g., +1234567890)</div>
               }
             </div>
 

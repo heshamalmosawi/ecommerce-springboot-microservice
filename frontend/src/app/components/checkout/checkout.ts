@@ -1,13 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CartService } from '../../services/cart';
 import { Product } from '../../services/product';
 import { Subscription } from 'rxjs';
+import { OrderService, CreateOrderRequest, Order } from '../../services/order';
+import { AuthService } from '../../services/auth';
+import { Router } from '@angular/router';
+import { Toast } from '../toast/toast';
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Toast],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss'
 })
@@ -16,19 +20,22 @@ export class Checkout implements OnInit {
   private cartSubscription!: Subscription;
   checkoutForm: FormGroup;
   isSubmitting = false;
+  @ViewChild(Toast) toast!: Toast;
 
   constructor(
     private cartService: CartService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private orderService: OrderService,
+    private authService: AuthService,
+    private router: Router
   ) {
     this.checkoutForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern('^[0-9+]{8,15}$')]],
+      internationalPhone: ['', [Validators.required, Validators.pattern('^\\+[1-9]\\d{1,14}$')]],
       address: ['', [Validators.required, Validators.minLength(5)]],
       city: ['', [Validators.required]],
-      postalCode: ['', [Validators.required]],
-      paymentMethod: ['cod']
+      postalCode: ['', [Validators.required, Validators.pattern('^\\d{3,5}$')]]
     });
   }
 
@@ -51,13 +58,46 @@ export class Checkout implements OnInit {
 
   onSubmit() {
     if (this.checkoutForm.invalid || this.items.length === 0) {
-      console.log('Form validation failed or cart is empty');
       return;
     }
 
-    console.log('Placing order...');
-    console.log('Form data:', this.checkoutForm.value);
-    console.log('Order items:', this.items);
-    console.log('Total:', this.getCartTotal());
+    this.isSubmitting = true;
+
+    const token = this.authService.getToken();
+    if (!token) {
+      this.toast.show('You must be logged in to place an order', 'error');
+      this.isSubmitting = false;
+      return;
+    }
+
+    const formValue = this.checkoutForm.value;
+    const orderItems = this.items.map(item => ({
+      productId: item.id,
+      quantity: item.quantity
+    }));
+
+    const orderRequest: CreateOrderRequest = {
+      email: formValue.email,
+      internationalPhone: formValue.internationalPhone,
+      fullName: formValue.fullName,
+      address: formValue.address,
+      city: formValue.city,
+      postalCode: formValue.postalCode,
+      orderItems: orderItems
+    };
+
+     this.orderService.createOrder(orderRequest, token).subscribe({
+      next: (order: Order) => {
+        this.cartService.clear();
+        this.router.navigate(['/order-confirmation'], { 
+          queryParams: { orderId: order.id },
+          state: { order }
+        });
+      },
+      error: (error) => {
+        this.toast.show(error.message || 'Failed to create order. Please try again.', 'error');
+        this.isSubmitting = false;
+      }
+    });
   }
 }

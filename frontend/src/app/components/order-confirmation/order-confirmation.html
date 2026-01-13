@@ -1,0 +1,86 @@
+<div class="order-confirmation-container">
+  <div class="confirmation-header">
+    <div class="success-icon">✓</div>
+    <h1>Order Confirmed!</h1>
+    <p class="confirmation-message">Thank you for your purchase</p>
+  </div>
+
+  @if (order) {
+  <div class="order-details">
+    <div class="order-info-card">
+      <h2>Order Information</h2>
+      <div class="info-row">
+        <span class="label">Order ID:</span>
+        <span class="value">{{ order.id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Order Date:</span>
+        <span class="value">{{ formatDate(order.createdAt) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Status:</span>
+        <span class="status-badge" [style.background-color]="getStatusColor(order.status)">
+          {{ order.status }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Total Amount:</span>
+        <span class="value total">${{ order.totalPrice.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="shipping-info-card">
+      <h2>Shipping Information</h2>
+      <div class="info-row">
+        <span class="label">Name:</span>
+        <span class="value">{{ order.fullName }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Email:</span>
+        <span class="value">{{ order.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Phone:</span>
+        <span class="value">{{ order.internationalPhone }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Address:</span>
+        <span class="value">{{ order.address }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">City:</span>
+        <span class="value">{{ order.city }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Postal Code:</span>
+        <span class="value">{{ order.postalCode }}</span>
+      </div>
+    </div>
+
+    <div class="order-items-card">
+      <h2>Order Items</h2>
+      <div class="items-list">
+        @for (item of order.orderItems; track item.productId) {
+        <div class="order-item">
+          <div class="item-details">
+            <span class="item-name">{{ item.productName }}</span>
+            <span class="item-quantity">Qty: {{ item.quantity }}</span>
+          </div>
+          <span class="item-price">${{ (item.price * item.quantity).toFixed(2) }}</span>
+        </div>
+        }
+      </div>
+      <div class="order-total">
+        <span>Total:</span>
+        <span>${{ order.totalPrice.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="continue-shopping-btn" (click)="continueShopping()">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+  }
+</div>

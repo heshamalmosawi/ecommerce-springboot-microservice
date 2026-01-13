@@ -10,6 +10,7 @@ import { AddProductComponent } from './components/add-product/add-product';
 import { ProductDetail } from './components/product-detail/product-detail';
 import { EditProductComponent } from './components/edit-product/edit-product';
 import { Checkout } from './components/checkout/checkout';
+import { OrderConfirmation } from './components/order-confirmation/order-confirmation';
 
 export const routes: Routes = [
   {
@@ -31,7 +32,12 @@ export const routes: Routes = [
       },
       {
         path: 'checkout',
-        component: Checkout
+        component: Checkout,
+        canActivate: [authGuard]
+      },
+      {
+        path: 'order-confirmation',
+        component: OrderConfirmation
       },
       {
         path: 'products/add',
