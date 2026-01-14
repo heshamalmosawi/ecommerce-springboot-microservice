@@ -2,15 +2,16 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { ProductService, Product, ProductPage, PaginationParams } from '../../services/product';
+import { ProductService, Product, ProductPage, PaginationParams, SearchParams } from '../../services/product';
 import { environment } from '../../../environments/environment';
 import { PaginationComponent } from '../pagination/pagination';
 import { CartService } from '../../services/cart';
 import { Toast } from '../toast/toast';
+import { ProductSearchComponent } from '../product-search/product-search';
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, PaginationComponent, Toast],
+  imports: [CommonModule, PaginationComponent, ProductSearchComponent, Toast],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
@@ -28,6 +29,10 @@ export class Home implements OnInit {
   totalElements: number = 0;
   sortBy: string = 'name';
   sortDir: 'asc' | 'desc' = 'asc';
+  
+  // Search properties
+  currentSearchFilters: SearchParams = {};
+  hasActiveFilters: boolean = false;
 
   constructor(private productService: ProductService, private cartService: CartService, private http: HttpClient, private router: Router) {}
 
@@ -39,26 +44,64 @@ export class Home implements OnInit {
     this.loading = true;
     this.error = null;
     
-    const params: PaginationParams = {
-      page: this.currentPage,
-      size: this.pageSize,
-      sortBy: this.sortBy,
-      sortDir: this.sortDir
-    };
+    // Use search if there are active filters, otherwise use basic pagination
+    if (this.hasActiveFilters) {
+      const searchParams: SearchParams = {
+        ...this.currentSearchFilters,
+        page: this.currentPage,
+        size: this.pageSize
+      };
+      
+      this.productService.searchProducts(searchParams).subscribe({
+        next: (productPage: ProductPage) => {
+          this.products = productPage.content;
+          this.totalPages = productPage.totalPages;
+          this.totalElements = productPage.totalElements;
+          this.loading = false;
+          this.loadImages();
+        },
+        error: (err) => {
+          this.error = err.error?.Error || err.message || 'Failed to load products';
+          this.loading = false;
+        }
+      });
+    } else {
+      const params: PaginationParams = {
+        page: this.currentPage,
+        size: this.pageSize,
+        sortBy: this.sortBy,
+        sortDir: this.sortDir
+      };
+      
+      this.productService.getProductsPaginated(params).subscribe({
+        next: (productPage: ProductPage) => {
+          this.products = productPage.content;
+          this.totalPages = productPage.totalPages;
+          this.totalElements = productPage.totalElements;
+          this.loading = false;
+          this.loadImages();
+        },
+        error: (err) => {
+          this.error = err.error?.Error || err.message || 'Failed to load products';
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  onSearchChanged(filters: SearchParams) {
+    this.currentSearchFilters = filters ;
+    this.currentPage = 0; // Reset to first page when search changes
     
-    this.productService.getProductsPaginated(params).subscribe({
-      next: (productPage: ProductPage) => {
-        this.products = productPage.content;
-        this.totalPages = productPage.totalPages;
-        this.totalElements = productPage.totalElements;
-        this.loading = false;
-        this.loadImages();
-      },
-      error: (err) => {
-        this.error = err.error?.Error || err.message || 'Failed to load products';
-        this.loading = false;
-      }
-    });
+    // Check if there are active filters
+    this.hasActiveFilters = !!(filters.name || filters.minPrice !== undefined || 
+                              filters.maxPrice !== undefined || filters.sellerName);
+    
+    // Update sort properties if provided
+    if (filters.sortBy) this.sortBy = filters.sortBy;
+    if (filters.sortDir) this.sortDir = filters.sortDir;
+    
+    this.loadProducts();
   }
 
   loadImages() {
