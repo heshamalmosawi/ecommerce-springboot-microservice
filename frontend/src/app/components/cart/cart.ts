@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Product } from '../../services/product';
 import { CartService } from '../../services/cart';
+import { AuthService } from '../../services/auth';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
@@ -14,7 +16,7 @@ export class CartComponent implements OnInit, OnDestroy {
   items: Product[] = [];
   private cartSubscription!: Subscription;
 
-  constructor(private cartService: CartService) { }
+  constructor(private cartService: CartService, private authService: AuthService, private router: Router) { }
 
   ngOnInit() {
     this.cartSubscription = this.cartService.cart$.subscribe(items => {
@@ -45,5 +47,13 @@ export class CartComponent implements OnInit, OnDestroy {
 
   getCartTotal(): number {
     return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }
+
+  proceedToCheckout() {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/auth'], { queryParams: { returnUrl: '/checkout' } });
+    } else {
+      this.router.navigate(['/checkout']);
+    }
   }
 }

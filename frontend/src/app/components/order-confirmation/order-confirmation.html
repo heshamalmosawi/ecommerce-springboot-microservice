@@ -1,0 +1,81 @@
+<div class="order-confirmation-container">
+  <app-toast />
+
+  <div class="confirmation-card">
+    <div class="confirmation-header">
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="25" fill="#2563eb" />
+          <path fill="none" stroke="white" stroke-width="4" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+        </svg>
+      </div>
+      <h1>Order Confirmed!</h1>
+      <p class="confirmation-message">Thank you for your purchase</p>
+      @if (order) {
+      <p class="order-id">Order #{{ order.id }}</p>
+      }
+    </div>
+
+    @if (order) {
+    <div class="order-details">
+      <div class="cards-grid">
+        <div class="info-card shipping-card">
+          <h2>Shipping Information</h2>
+          <div class="info-item">
+            <span class="label">Name</span>
+            <span class="value">{{ order.fullName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Email</span>
+            <span class="value">{{ order.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Phone</span>
+            <span class="value">{{ order.internationalPhone }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Address</span>
+            <span class="value">{{ order.address }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">City</span>
+            <span class="value">{{ order.city }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Postal Code</span>
+            <span class="value">{{ order.postalCode }}</span>
+          </div>
+        </div>
+
+        <div class="info-card order-info-card">
+          <h2>Order Details</h2>
+          <div class="info-item">
+            <span class="label">Order ID</span>
+            <span class="value">{{ order.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Order Date</span>
+            <span class="value">{{ formatDate(order.createdAt) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Status</span>
+            <span class="status-badge" [style.background-color]="getStatusColor(order.status)">
+              {{ order.status }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Total Amount</span>
+            <span class="value total">${{ order.totalPrice.toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    }
+      <div class="actions">
+        <button class="continue-shopping-btn" (click)="continueShopping()">
+          Continue Shopping
+        </button>
+      </div>
+  </div>
+</div>

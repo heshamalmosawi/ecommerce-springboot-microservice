@@ -6,54 +6,80 @@
     <p>The best digital bahraini marketplace!</p>
   </div>
 
-  <div class="products-section">
-    <h2 class="section-title">Featured Products</h2>
-    
-    @if (loading) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading amazing products...</p>
-      </div>
-    } @else if (error) {
-      <div class="error-state">
-        <p>{{ error }}</p>
-        <button (click)="loadProducts()" class="retry-btn">Try Again</button>
-      </div>
-    } @else if (products.length === 0) {
-      <div class="empty-state">
-        <p>No products available at the moment.</p>
-      </div>
-    } @else {
-      <div class="products-grid">
-        @for (product of products; track product.id) {
-          <div class="product-card" (click)="navigateToProduct(product.id)">
-            <div class="product-image">
-              <img [src]="product.imageUrl" [alt]="product.name" />
-            </div>
-            <div class="product-info">
-              <h3 class="product-name">{{ product.name }}</h3>
-              <p class="product-description">{{ product.description }}</p>
-              <div class="product-footer">
-                <div class="price-quantity">
-                  <span class="product-price">${{ product.price.toFixed(2) }}</span>
-                  <span class="product-quantity">{{ product.quantity }} in stock</span>
-                </div>
-                <button (click)="addToCart(product); $event.stopPropagation()">🛒 Add to Cart</button>
-              </div>
-            </div>
+  <div class="content-layout">
+    <!-- Search Sidebar -->
+    <aside class="sidebar">
+      <app-product-search (searchChanged)="onSearchChanged($event)"></app-product-search>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="products-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            @if (hasActiveFilters) {
+              Search Results
+            } @else {
+              Featured Products
+            }
+          </h2>
+          @if (totalElements > 0) {
+            <span class="results-count">{{ totalElements }} products found</span>
+          }
+        </div>
+        
+        @if (loading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading amazing products...</p>
           </div>
+        } @else if (error) {
+          <div class="error-state">
+            <p>{{ error }}</p>
+            <button (click)="loadProducts()" class="retry-btn">Try Again</button>
+          </div>
+        } @else if (products.length === 0) {
+          <div class="empty-state">
+            @if (hasActiveFilters) {
+              <p>No products found matching your search criteria.</p>
+              <p class="empty-hint">Try adjusting your filters or search terms.</p>
+            } @else {
+              <p>No products available at the moment.</p>
+            }
+          </div>
+        } @else {
+          <div class="products-grid">
+            @for (product of products; track product.id) {
+              <div class="product-card" (click)="navigateToProduct(product.id)">
+                <div class="product-image">
+                  <img [src]="product.imageUrl" [alt]="product.name" />
+                </div>
+                <div class="product-info">
+                  <h3 class="product-name">{{ product.name }}</h3>
+                  <p class="product-description">{{ product.description }}</p>
+                  <div class="product-footer">
+                    <div class="price-quantity">
+                      <span class="product-price">${{ product.price.toFixed(2) }}</span>
+                      <span class="product-quantity">{{ product.quantity }} in stock</span>
+                    </div>
+                    <button (click)="addToCart(product); $event.stopPropagation()">🛒 Add to Cart</button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+          
+          <!-- Pagination Component -->
+          <app-pagination
+            [currentPage]="currentPage"
+            [totalPages]="totalPages"
+            [totalElements]="totalElements"
+            [pageSize]="pageSize"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)">
+          </app-pagination>
         }
       </div>
-      
-      <!-- Pagination Component -->
-      <app-pagination
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        [totalElements]="totalElements"
-        [pageSize]="pageSize"
-        (pageChange)="onPageChange($event)"
-        (pageSizeChange)="onPageSizeChange($event)">
-      </app-pagination>
-    }
+    </main>
   </div>
 </div>

@@ -6,6 +6,11 @@ import { Profile } from './components/profile/profile';
 import { authGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
 import { CartComponent } from './components/cart/cart';
+import { AddProductComponent } from './components/add-product/add-product';
+import { ProductDetail } from './components/product-detail/product-detail';
+import { EditProductComponent } from './components/edit-product/edit-product';
+import { Checkout } from './components/checkout/checkout';
+import { OrderConfirmation } from './components/order-confirmation/order-confirmation';
 
 export const routes: Routes = [
   {
@@ -26,18 +31,27 @@ export const routes: Routes = [
         component: CartComponent
       },
       {
+        path: 'checkout',
+        component: Checkout,
+        canActivate: [authGuard]
+      },
+      {
+        path: 'order-confirmation',
+        component: OrderConfirmation
+      },
+      {
         path: 'products/add',
-        loadComponent: () => import('./components/add-product/add-product').then(m => m.AddProductComponent),
+        component: AddProductComponent,
         canActivate: [authGuard, roleGuard],
         data: { roles: ['seller'] }
       },
       {
         path: 'products/:id',
-        loadComponent: () => import('./components/product-detail/product-detail').then(m => m.ProductDetail)
+        component: ProductDetail,
       },
       {
         path: 'products/:id/edit',
-        loadComponent: () => import('./components/edit-product/edit-product').then(m => m.EditProductComponent),
+        component: EditProductComponent,
         canActivate: [authGuard, roleGuard],
         data: { roles: ['seller'] }
       },
