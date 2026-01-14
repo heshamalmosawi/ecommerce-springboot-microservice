@@ -32,10 +32,10 @@ public class InventoryReservationService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${kafka.topic.products.reservsation.success}")
+    @Value("${kafka.topic.products.reservation.success}")
     private String productReservationSuccessTopic;
 
-    @Value("${kafka.topic.products.reservsation.failed}")
+    @Value("${kafka.topic.products.reservation.failed}")
     private String productReservationFailedTopic;
 
     @KafkaListener(topics = "${kafka.topic.order.product.event}", groupId = "productservice-group")

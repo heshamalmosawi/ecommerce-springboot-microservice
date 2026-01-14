@@ -61,7 +61,7 @@ public class OrderSagaOrchestrator {
         return order;
     }
 
-    @KafkaListener(topics = "${kafka.topic.products.reservsation.success}", groupId = "orderservice-group")
+    @KafkaListener(topics = "${kafka.topic.products.reservation.success}", groupId = "orderservice-group")
     public void handleproductReserved(String message) {
         try {
             logger.info("Received product reserved callback: {}", message);
@@ -76,7 +76,7 @@ public class OrderSagaOrchestrator {
         }
     }
 
-    @KafkaListener(topics = "${kafka.topic.products.reservsation.failed}", groupId = "orderservice-group")
+    @KafkaListener(topics = "${kafka.topic.products.reservation.failed}", groupId = "orderservice-group")
     public void handleproductFailed(String message) {
         try {
             logger.info("Received product failed callback: {}", message);
