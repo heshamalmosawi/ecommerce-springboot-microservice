@@ -2,10 +2,11 @@ import { Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Order } from '../../services/order';
+import { Toast } from '../toast/toast';
 
 @Component({
   selector: 'app-order-confirmation',
-  imports: [CommonModule],
+  imports: [CommonModule, Toast],
   templateUrl: './order-confirmation.html',
   styleUrl: './order-confirmation.scss'
 })
