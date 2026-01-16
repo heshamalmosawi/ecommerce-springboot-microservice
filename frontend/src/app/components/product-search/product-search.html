@@ -54,32 +54,44 @@
       <!-- Seller Name Search -->
       <div class="form-group">
         <label class="form-label" for="sellerName">Seller Name</label>
-        <input 
+        <input
           id="sellerName"
-          type="text" 
-          class="form-input" 
+          type="text"
+          class="form-input"
           formControlName="sellerName"
           placeholder="Search sellers..."
         >
       </div>
 
-      <!-- Sorting Options -->
+      <!-- Category Filter -->
       <div class="form-group">
-        <label class="form-label" for="sortBy">Sort By</label>
-        <select id="sortBy" class="form-select" formControlName="sortBy">
-          @for (option of sortOptions; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
+        <label class="form-label" for="category">Category</label>
+        <select id="category" class="form-select" formControlName="category">
+          <option value="">All Categories</option>
+          @for (cat of categories; track cat.name) {
+            <option [value]="cat.name">{{ cat.displayName }}</option>
           }
         </select>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="sortDir">Sort Order</label>
-        <select id="sortDir" class="form-select" formControlName="sortDir">
-          @for (option of sortDirections; track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+      <!-- Sorting Options -->
+      <div class="form-group sort-group">
+        <div class="sort-field">
+          <label class="form-label" for="sortBy">Sort By</label>
+          <select id="sortBy" class="form-select" formControlName="sortBy">
+            @for (option of sortOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="sort-field">
+          <label class="form-label" for="sortDir">Order</label>
+          <select id="sortDir" class="form-select" formControlName="sortDir">
+            @for (option of sortDirections; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
       </div>
 
       <!-- Action Buttons -->

@@ -48,6 +48,7 @@ public class SecurityConfig {
         System.out.println("Configuring security filter chain...");
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeHttpRequestsCustomizer -> authorizeHttpRequestsCustomizer
+                .requestMatchers(HttpMethod.GET, "/categories").permitAll()
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasRole("SELLER")
                 )

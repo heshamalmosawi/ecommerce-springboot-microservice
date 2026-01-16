@@ -92,15 +92,15 @@ export class Home implements OnInit {
   onSearchChanged(filters: SearchParams) {
     this.currentSearchFilters = filters ;
     this.currentPage = 0; // Reset to first page when search changes
-    
+
     // Check if there are active filters
-    this.hasActiveFilters = !!(filters.name || filters.minPrice !== undefined || 
-                              filters.maxPrice !== undefined || filters.sellerName);
-    
+    this.hasActiveFilters = !!(filters.name || filters.minPrice !== undefined ||
+                              filters.maxPrice !== undefined || filters.sellerName || filters.category);
+
     // Update sort properties if provided
     if (filters.sortBy) this.sortBy = filters.sortBy;
     if (filters.sortDir) this.sortDir = filters.sortDir;
-    
+
     this.loadProducts();
   }
 

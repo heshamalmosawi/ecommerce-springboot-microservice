@@ -14,6 +14,7 @@ import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
+import com.sayedhesham.productservice.model.Category;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
@@ -36,18 +37,17 @@ public class ProductService {
         return prodRepo.findAll();
     }
 
-    public Page<Product> getAll(Pageable pageable) {
-        return prodRepo.findAll(pageable);
+    public Page<ProductResponseDTO> getAll(Pageable pageable) {
+        return prodRepo.findAll(pageable).map(this::convertToProductResponseDTO);
     }
 
     public Page<ProductResponseDTO> searchProducts(ProductSearchRequest searchRequest, Pageable pageable) {
-        Page<Product> products;
-        
         String name = searchRequest.getName();
         Double minPrice = searchRequest.getMinPrice();
         Double maxPrice = searchRequest.getMaxPrice();
         String sellerName = searchRequest.getSellerName();
-        
+        Category category = searchRequest.getCategory();
+
         List<String> userIds = null;
         if (sellerName != null && !sellerName.trim().isEmpty()) {
             userIds = userRepo.findByNameContainingIgnoreCase(sellerName)
@@ -55,38 +55,17 @@ public class ProductService {
                     .map(User::getId)
                     .toList();
         }
-        
-        if (name != null && minPrice != null && maxPrice != null && userIds != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIds(
-                    name, minPrice, maxPrice, userIds, pageable);
-        } else if (name != null && minPrice != null && maxPrice != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetween(
-                    name, minPrice, maxPrice, pageable);
-        } else if (name != null && userIds != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndUserIds(
-                    name, userIds, pageable);
-        } else if (minPrice != null && maxPrice != null && userIds != null) {
-            products = prodRepo.findByPriceBetweenAndUserIds(
-                    minPrice, maxPrice, userIds, pageable);
-        } else if (name != null) {
-            products = prodRepo.findByNameContainingIgnoreCase(name, pageable);
-        } else if (minPrice != null && maxPrice != null) {
-            products = prodRepo.findByPriceBetween(minPrice, maxPrice, pageable);
-        } else if (userIds != null) {
-            products = prodRepo.findByUserIds(userIds, pageable);
-        } else {
-            products = prodRepo.findAll(pageable);
-        }
-        
+
+        Page<Product> products = prodRepo.searchProducts(name, minPrice, maxPrice, userIds, category, pageable);
         return products.map(this::convertToProductResponseDTO);
     }
     
     private ProductResponseDTO convertToProductResponseDTO(Product product) {
         User seller = userRepo.findById(product.getUserId())
                 .orElse(null);
-        
+
         String sellerName = seller != null ? seller.getName() : "Unknown Seller";
-        
+
         return ProductResponseDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -94,6 +73,8 @@ public class ProductService {
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .sellerName(sellerName)
+                .category(product.getCategory())
+                .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
                 .imageMediaIds(product.getImageMediaIds())
                 .build();
     }
@@ -106,10 +87,10 @@ public class ProductService {
     public ProductResponseDTO getByIdWithSellerName(String id) {
         Product product = prodRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        
+
         User seller = userRepo.findById(product.getUserId())
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
-        
+
         ProductResponseDTO responseDTO = ProductResponseDTO.builder()
             .id(product.getId())
             .name(product.getName())
@@ -117,9 +98,11 @@ public class ProductService {
             .price(product.getPrice())
             .quantity(product.getQuantity())
             .sellerName(seller.getName())
+            .category(product.getCategory())
+            .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
             .imageMediaIds(product.getImageMediaIds())
             .build();
-        
+
         return responseDTO;
     }
 
@@ -137,6 +120,9 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         String currentUserId = getCurrentUserId();
         if (!userRepo.existsById(currentUserId)) {
@@ -149,6 +135,7 @@ public class ProductService {
             .description(productDTO.getDescription())
             .price(productDTO.getPrice())
             .quantity(productDTO.getQuantity())
+            .category(productDTO.getCategory())
             .userId(currentUserId)
             .imageMediaIds(new ArrayList<>())
             .build();
@@ -191,11 +178,15 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         existingProduct.setName(productDTO.getName());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setQuantity(productDTO.getQuantity());
+        existingProduct.setCategory(productDTO.getCategory());
         existingProduct.setUserId(currentUserId);
 
         return prodRepo.save(existingProduct);
@@ -223,6 +214,9 @@ public class ProductService {
         }
         if (productDTO.getQuantity() >= 0) {
             existingProduct.setQuantity(productDTO.getQuantity());
+        }
+        if (productDTO.getCategory() != null) {
+            existingProduct.setCategory(productDTO.getCategory());
         }
 
         return prodRepo.save(existingProduct);
@@ -263,12 +257,16 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         // Update basic product fields
         existingProduct.setName(productDTO.getName());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setQuantity(productDTO.getQuantity());
+        existingProduct.setCategory(productDTO.getCategory());
 
         // Handle image operations
         List<String> currentImageIds = existingProduct.getImageMediaIds();

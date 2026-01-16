@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
+import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
@@ -94,7 +95,7 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(Arrays.asList(testProduct));
         when(prodRepo.findAll(pageable)).thenReturn(productPage);
 
-        Page<Product> result = productService.getAll(pageable);
+        Page<ProductResponseDTO> result = productService.getAll(pageable);
 
         assertEquals(1, result.getContent().size());
         verify(prodRepo).findAll(pageable);

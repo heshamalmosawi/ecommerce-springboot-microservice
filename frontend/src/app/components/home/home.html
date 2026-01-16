@@ -56,6 +56,9 @@
             </div>
             <div class="product-info">
               <h3 class="product-name">{{ product.name }}</h3>
+              @if (product.categoryDisplayName) {
+              <p class="product-category">{{ product.categoryDisplayName }}</p>
+              }
               <p class="product-description">{{ product.description }}</p>
               <div class="product-footer">
                 <div class="price-quantity">
