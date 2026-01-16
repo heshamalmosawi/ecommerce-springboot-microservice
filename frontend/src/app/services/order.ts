@@ -42,6 +42,29 @@ export interface Order {
   updatedAt: string;
 }
 
+export interface Pageable {
+  pageNumber: number;
+  pageSize: number;
+  sort: {
+    sorted: boolean;
+    unsorted: boolean;
+    empty: boolean;
+  };
+}
+
+export interface OrdersPage {
+  content: Order[];
+  pageable: Pageable;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  first: boolean;
+  numberOfElements: number;
+  size: number;
+  number: number;
+  empty: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -64,6 +87,34 @@ export class OrderService {
       catchError(error => {
         console.error('Error creating order:', error);
         let errorMessage = 'Failed to create order';
+        
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  getUserOrders(page: number = 0, size: number = 10, sortBy: string = 'createdAt', sortDir: string = 'desc'): Observable<OrdersPage> {
+    return this.http.get<OrdersPage>(`${this.API_URL}/orders`, {
+      params: {
+        page: page.toString(),
+        size: size.toString(),
+        sortBy: sortBy,
+        sortDir: sortDir
+      }
+    }).pipe(
+      map(response => {
+        console.log('Orders fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching orders:', error);
+        let errorMessage = 'Failed to fetch orders';
         
         if (error.error && error.error.message) {
           errorMessage = error.error.message;

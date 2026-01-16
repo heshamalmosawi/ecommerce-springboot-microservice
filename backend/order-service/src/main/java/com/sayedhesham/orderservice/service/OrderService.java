@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
@@ -88,5 +89,9 @@ public class OrderService {
         
         order.setStatus(status);
         orderRepo.save(order);
+    }
+
+    public Page<Order> getMyOrders(String userId, org.springframework.data.domain.Pageable pageable) {
+        return orderRepo.findByBuyerId(userId, pageable);
     }
 }
