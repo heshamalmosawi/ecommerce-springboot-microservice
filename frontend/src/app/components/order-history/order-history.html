@@ -8,7 +8,7 @@
         <option value="totalPrice">Price</option>
         <option value="status">Status</option>
       </select>
-      <button class="sort-dir-btn" (click)="sortDir = sortDir === 'desc' ? 'asc' : 'desc'; loadOrders()">
+      <button class="sort-dir-btn" (click)="sortDir = sortDir === 'desc' ? 'asc' : 'desc'; onSortChange(sortBy)">
         {{ sortDir === 'desc' ? '↓' : '↑' }}
       </button>
     </div>

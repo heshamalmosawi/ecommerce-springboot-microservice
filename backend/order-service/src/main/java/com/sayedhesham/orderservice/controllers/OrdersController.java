@@ -39,14 +39,16 @@ class OrdersController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex) {
         String errorMessage = ex.getBindingResult()
-            .getFieldErrors()
-            .stream()
-            .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-            .collect(Collectors.joining(", "));
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
-    /** This is to get MY orders */
+    /**
+     * This is to get MY orders
+     */
     @GetMapping
     public ResponseEntity<Object> getOrders(
             @RequestParam(defaultValue = "0") int page,
@@ -54,6 +56,14 @@ class OrdersController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         try {
+            // Validate page and size parameters
+            if (page < 0) throw new IllegalArgumentException("Page parameter must be non-negative");
+            if (size <= 0 || size > 100) throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+
+            // Validate sortBy parameter against a whitelist of allowed fields
+            String[] allowedFields = {"createdAt", "totalPrice", "status"};
+            if (!java.util.Arrays.asList(allowedFields).contains(sortBy)) throw new IllegalArgumentException("Invalid sortBy parameter");
+            
             Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
             String userId = Utils.getCurrentUserId();
@@ -77,6 +87,6 @@ class OrdersController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-    } 
+    }
 
 }

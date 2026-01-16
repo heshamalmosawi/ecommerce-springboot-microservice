@@ -107,9 +107,4 @@ export class OrderHistory implements OnInit {
       minute: '2-digit'
     });
   }
-
-  getSortIcon(field: string): string {
-    if (this.sortBy !== field) return '↕';
-    return this.sortDir === 'desc' ? '↓' : '↑';
-  }
 }
