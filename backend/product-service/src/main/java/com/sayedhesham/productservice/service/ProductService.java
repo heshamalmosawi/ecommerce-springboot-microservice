@@ -42,14 +42,12 @@ public class ProductService {
     }
 
     public Page<ProductResponseDTO> searchProducts(ProductSearchRequest searchRequest, Pageable pageable) {
-        Page<Product> products;
-        
         String name = searchRequest.getName();
         Double minPrice = searchRequest.getMinPrice();
         Double maxPrice = searchRequest.getMaxPrice();
         String sellerName = searchRequest.getSellerName();
         Category category = searchRequest.getCategory();
-        
+
         List<String> userIds = null;
         if (sellerName != null && !sellerName.trim().isEmpty()) {
             userIds = userRepo.findByNameContainingIgnoreCase(sellerName)
@@ -57,49 +55,8 @@ public class ProductService {
                     .map(User::getId)
                     .toList();
         }
-        
-        if (name != null && minPrice != null && maxPrice != null && userIds != null && category != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIdsAndCategory(
-                    name, minPrice, maxPrice, userIds, category, pageable);
-        } else if (name != null && minPrice != null && maxPrice != null && category != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndCategory(
-                    name, minPrice, maxPrice, category, pageable);
-        } else if (name != null && userIds != null && category != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndUserIdsAndCategory(
-                    name, userIds, category, pageable);
-        } else if (minPrice != null && maxPrice != null && userIds != null && category != null) {
-            products = prodRepo.findByPriceBetweenAndUserIdsAndCategory(
-                    minPrice, maxPrice, userIds, category, pageable);
-        } else if (name != null && minPrice != null && maxPrice != null && userIds != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIds(
-                    name, minPrice, maxPrice, userIds, pageable);
-        } else if (name != null && minPrice != null && maxPrice != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetween(
-                    name, minPrice, maxPrice, pageable);
-        } else if (name != null && userIds != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndUserIds(
-                    name, userIds, pageable);
-        } else if (minPrice != null && maxPrice != null && userIds != null) {
-            products = prodRepo.findByPriceBetweenAndUserIds(
-                    minPrice, maxPrice, userIds, pageable);
-        } else if (name != null && category != null) {
-            products = prodRepo.findByNameContainingIgnoreCaseAndCategory(name, category, pageable);
-        } else if (minPrice != null && maxPrice != null && category != null) {
-            products = prodRepo.findByPriceBetweenAndCategory(minPrice, maxPrice, category, pageable);
-        } else if (userIds != null && category != null) {
-            products = prodRepo.findByUserIdsAndCategory(userIds, category, pageable);
-        } else if (category != null) {
-            products = prodRepo.findByCategory(category, pageable);
-        } else if (name != null) {
-            products = prodRepo.findByNameContainingIgnoreCase(name, pageable);
-        } else if (minPrice != null && maxPrice != null) {
-            products = prodRepo.findByPriceBetween(minPrice, maxPrice, pageable);
-        } else if (userIds != null) {
-            products = prodRepo.findByUserIds(userIds, pageable);
-        } else {
-            products = prodRepo.findAll(pageable);
-        }
-        
+
+        Page<Product> products = prodRepo.searchProducts(name, minPrice, maxPrice, userIds, category, pageable);
         return products.map(this::convertToProductResponseDTO);
     }
     
@@ -117,17 +74,9 @@ public class ProductService {
                 .quantity(product.getQuantity())
                 .sellerName(sellerName)
                 .category(product.getCategory())
-                .categoryDisplayName(toDisplayName(product.getCategory()))
+                .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
                 .imageMediaIds(product.getImageMediaIds())
                 .build();
-    }
-
-    private String toDisplayName(Category category) {
-        String enumName = category.name();
-        return enumName.toLowerCase()
-                .replace("_", " ")
-                .substring(0, 1).toUpperCase()
-                + enumName.toLowerCase().replace("_", " ").substring(1);
     }
 
     public Product getById(String id) {
@@ -150,7 +99,7 @@ public class ProductService {
             .quantity(product.getQuantity())
             .sellerName(seller.getName())
             .category(product.getCategory())
-            .categoryDisplayName(toDisplayName(product.getCategory()))
+            .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
             .imageMediaIds(product.getImageMediaIds())
             .build();
 

@@ -11,5 +11,10 @@ public enum Category {
     AUTOMOTIVE,
     HEALTH,
     GROCERIES,
-    OTHER
+    OTHER;
+
+    public String toDisplayName() {
+        String displayName = this.name().toLowerCase().replace("_", " ");
+        return displayName.substring(0, 1).toUpperCase() + displayName.substring(1);
+    }
 }

@@ -21,16 +21,9 @@ public class CategoriesController {
         List<Map<String, String>> categories = Arrays.stream(Category.values())
                 .map(category -> Map.of(
                         "name", category.name(),
-                        "displayName", toDisplayName(category.name())
+                        "displayName", category.toDisplayName()
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(categories);
-    }
-
-    private String toDisplayName(String enumName) {
-        return enumName.toLowerCase()
-                .replace("_", " ")
-                .substring(0, 1).toUpperCase()
-                + enumName.toLowerCase().replace("_", " ").substring(1);
     }
 }
