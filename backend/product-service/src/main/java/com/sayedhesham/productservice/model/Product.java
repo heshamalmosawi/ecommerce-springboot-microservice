@@ -24,5 +24,6 @@ public class Product {
     private Double price;
     private Integer quantity;
     private String userId;
+    private Category category;
     private List<String> imageMediaIds; // References to Media collection
 }

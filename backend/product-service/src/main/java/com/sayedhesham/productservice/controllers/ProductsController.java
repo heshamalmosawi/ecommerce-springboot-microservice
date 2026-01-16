@@ -23,6 +23,7 @@ import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
+import com.sayedhesham.productservice.model.Category;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
 
@@ -57,6 +58,7 @@ public class ProductsController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String sellerName,
+            @RequestParam(required = false) Category category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "name") String sortBy,
@@ -83,6 +85,7 @@ public class ProductsController {
                     .minPrice(minPrice)
                     .maxPrice(maxPrice)
                     .sellerName(sellerName)
+                    .category(category)
                     .build();
             var result = prodService.searchProducts(searchRequest, pageable);
             return ResponseEntity.ok(result);

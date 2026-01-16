@@ -2,6 +2,8 @@ package com.sayedhesham.productservice.dto;
 
 import java.util.List;
 
+import com.sayedhesham.productservice.model.Category;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -15,5 +17,6 @@ public class ProductDTO {
     @NotBlank private String description;
     @NotNull @Positive private Double price;
     @NotNull @Positive private Integer quantity = 1; // Default quantity, must be positive
+    @NotNull private Category category;
     private List<String> images; // Base64 encoded images
 }

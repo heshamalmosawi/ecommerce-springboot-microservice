@@ -14,6 +14,7 @@ import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
+import com.sayedhesham.productservice.model.Category;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
@@ -47,6 +48,7 @@ public class ProductService {
         Double minPrice = searchRequest.getMinPrice();
         Double maxPrice = searchRequest.getMaxPrice();
         String sellerName = searchRequest.getSellerName();
+        Category category = searchRequest.getCategory();
         
         List<String> userIds = null;
         if (sellerName != null && !sellerName.trim().isEmpty()) {
@@ -56,7 +58,19 @@ public class ProductService {
                     .toList();
         }
         
-        if (name != null && minPrice != null && maxPrice != null && userIds != null) {
+        if (name != null && minPrice != null && maxPrice != null && userIds != null && category != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIdsAndCategory(
+                    name, minPrice, maxPrice, userIds, category, pageable);
+        } else if (name != null && minPrice != null && maxPrice != null && category != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndCategory(
+                    name, minPrice, maxPrice, category, pageable);
+        } else if (name != null && userIds != null && category != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndUserIdsAndCategory(
+                    name, userIds, category, pageable);
+        } else if (minPrice != null && maxPrice != null && userIds != null && category != null) {
+            products = prodRepo.findByPriceBetweenAndUserIdsAndCategory(
+                    minPrice, maxPrice, userIds, category, pageable);
+        } else if (name != null && minPrice != null && maxPrice != null && userIds != null) {
             products = prodRepo.findByNameContainingIgnoreCaseAndPriceBetweenAndUserIds(
                     name, minPrice, maxPrice, userIds, pageable);
         } else if (name != null && minPrice != null && maxPrice != null) {
@@ -68,6 +82,14 @@ public class ProductService {
         } else if (minPrice != null && maxPrice != null && userIds != null) {
             products = prodRepo.findByPriceBetweenAndUserIds(
                     minPrice, maxPrice, userIds, pageable);
+        } else if (name != null && category != null) {
+            products = prodRepo.findByNameContainingIgnoreCaseAndCategory(name, category, pageable);
+        } else if (minPrice != null && maxPrice != null && category != null) {
+            products = prodRepo.findByPriceBetweenAndCategory(minPrice, maxPrice, category, pageable);
+        } else if (userIds != null && category != null) {
+            products = prodRepo.findByUserIdsAndCategory(userIds, category, pageable);
+        } else if (category != null) {
+            products = prodRepo.findByCategory(category, pageable);
         } else if (name != null) {
             products = prodRepo.findByNameContainingIgnoreCase(name, pageable);
         } else if (minPrice != null && maxPrice != null) {
@@ -94,6 +116,7 @@ public class ProductService {
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
                 .sellerName(sellerName)
+                .category(product.getCategory())
                 .imageMediaIds(product.getImageMediaIds())
                 .build();
     }
@@ -137,6 +160,9 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         String currentUserId = getCurrentUserId();
         if (!userRepo.existsById(currentUserId)) {
@@ -149,6 +175,7 @@ public class ProductService {
             .description(productDTO.getDescription())
             .price(productDTO.getPrice())
             .quantity(productDTO.getQuantity())
+            .category(productDTO.getCategory())
             .userId(currentUserId)
             .imageMediaIds(new ArrayList<>())
             .build();
@@ -191,11 +218,15 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         existingProduct.setName(productDTO.getName());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setQuantity(productDTO.getQuantity());
+        existingProduct.setCategory(productDTO.getCategory());
         existingProduct.setUserId(currentUserId);
 
         return prodRepo.save(existingProduct);
@@ -223,6 +254,9 @@ public class ProductService {
         }
         if (productDTO.getQuantity() >= 0) {
             existingProduct.setQuantity(productDTO.getQuantity());
+        }
+        if (productDTO.getCategory() != null) {
+            existingProduct.setCategory(productDTO.getCategory());
         }
 
         return prodRepo.save(existingProduct);
@@ -263,12 +297,16 @@ public class ProductService {
         if (productDTO.getQuantity() < 0) {
             throw new IllegalArgumentException("Product quantity must be non-negative");
         }
+        if (productDTO.getCategory() == null) {
+            throw new IllegalArgumentException("Product category is required");
+        }
 
         // Update basic product fields
         existingProduct.setName(productDTO.getName());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setQuantity(productDTO.getQuantity());
+        existingProduct.setCategory(productDTO.getCategory());
 
         // Handle image operations
         List<String> currentImageIds = existingProduct.getImageMediaIds();
