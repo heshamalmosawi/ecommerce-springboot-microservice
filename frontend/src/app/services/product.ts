@@ -14,6 +14,13 @@ export interface Product {
   imageMediaIds: string[];
   imageUrl?: string;
   imageUrls?: string[];
+  category?: string;
+  categoryDisplayName?: string;
+}
+
+export interface Category {
+  name: string;
+  displayName: string;
 }
 
 export interface ProductDTO {
@@ -21,6 +28,7 @@ export interface ProductDTO {
   description: string;
   price: number;
   quantity: number;
+  category: string;
 }
 
 export interface ProductWithImagesDTO extends ProductDTO {
@@ -69,6 +77,7 @@ export interface SearchParams {
   minPrice?: number;
   maxPrice?: number;
   sellerName?: string;
+  category?: string;
   page?: number;
   size?: number;
   sortBy?: string;
@@ -230,13 +239,23 @@ export class ProductService {
     );
   }
 
+  getCategories(): Observable<Category[]> {
+    return this.http.get<Category[]>(`${this.API_URL}/products/categories`).pipe(
+      catchError(error => {
+        console.error('Error fetching categories:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
   private buildSearchParams(searchParams: SearchParams): any {
     const params: any = {};
-    
+
     if (searchParams.name) params.name = searchParams.name;
     if (searchParams.minPrice !== undefined) params.minPrice = searchParams.minPrice;
     if (searchParams.maxPrice !== undefined) params.maxPrice = searchParams.maxPrice;
     if (searchParams.sellerName) params.sellerName = searchParams.sellerName;
+    if (searchParams.category) params.category = searchParams.category;
 
     // Pagination: preserve explicit 0 values, default only when undefined
     params.page = searchParams.page === undefined ? 0 : searchParams.page;
@@ -245,7 +264,7 @@ export class ProductService {
     // Sorting: preserve existing truthy semantics (fallback when falsy)
     params.sortBy = searchParams.sortBy ? searchParams.sortBy : 'name';
     params.sortDir = searchParams.sortDir ? searchParams.sortDir : 'asc';
-    
+
     return params;
   }
 }

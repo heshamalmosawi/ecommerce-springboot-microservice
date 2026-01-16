@@ -45,7 +45,7 @@ public class ProductsController {
         try {
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            Page<Product> productPage = prodService.getAll(pageable);
+            Page<ProductResponseDTO> productPage = prodService.getAll(pageable);
             return ResponseEntity.ok(productPage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());

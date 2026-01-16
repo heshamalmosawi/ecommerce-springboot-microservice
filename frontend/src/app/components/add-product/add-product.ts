@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProductService, CreateProductResponse, ProductWithImagesDTO } from '../../services/product';
+import { ProductService, CreateProductResponse, ProductWithImagesDTO, Category } from '../../services/product';
 import { AuthService } from '../../services/auth';
 import { ImageUtilsService } from '../../services/image-utils';
 
@@ -12,11 +12,12 @@ import { ImageUtilsService } from '../../services/image-utils';
   templateUrl: './add-product.html',
   styleUrl: './add-product.scss'
 })
-export class AddProductComponent {
+export class AddProductComponent implements OnInit {
   productForm: FormGroup;
   isSubmitting = false;
   selectedFiles: File[] = [];
   imagePreviews: string[] = [];
+  categories: Category[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -27,9 +28,25 @@ export class AddProductComponent {
   ) {
     this.productForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
+      category: ['', Validators.required],
       description: ['', [Validators.required, Validators.minLength(10)]],
       price: ['', [Validators.required, Validators.min(0.01)]],
       quantity: ['', [Validators.required, Validators.min(1)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
     });
   }
 
@@ -84,6 +101,7 @@ export class AddProductComponent {
       // Create product data
       const productData: ProductWithImagesDTO = {
         name: this.productForm.value.name,
+        category: this.productForm.value.category,
         description: this.productForm.value.description,
         price: parseFloat(this.productForm.value.price),
         quantity: parseInt(this.productForm.value.quantity, 10),

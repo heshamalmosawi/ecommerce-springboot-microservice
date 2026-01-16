@@ -17,5 +17,6 @@ public class ProductResponseDTO {
     private Integer quantity;
     private String sellerName;
     private Category category;
+    private String categoryDisplayName;
     private List<String> imageMediaIds;
 }

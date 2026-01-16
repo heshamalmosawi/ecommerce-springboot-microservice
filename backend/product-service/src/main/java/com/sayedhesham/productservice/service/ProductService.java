@@ -37,8 +37,8 @@ public class ProductService {
         return prodRepo.findAll();
     }
 
-    public Page<Product> getAll(Pageable pageable) {
-        return prodRepo.findAll(pageable);
+    public Page<ProductResponseDTO> getAll(Pageable pageable) {
+        return prodRepo.findAll(pageable).map(this::convertToProductResponseDTO);
     }
 
     public Page<ProductResponseDTO> searchProducts(ProductSearchRequest searchRequest, Pageable pageable) {
@@ -106,9 +106,9 @@ public class ProductService {
     private ProductResponseDTO convertToProductResponseDTO(Product product) {
         User seller = userRepo.findById(product.getUserId())
                 .orElse(null);
-        
+
         String sellerName = seller != null ? seller.getName() : "Unknown Seller";
-        
+
         return ProductResponseDTO.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -117,8 +117,17 @@ public class ProductService {
                 .quantity(product.getQuantity())
                 .sellerName(sellerName)
                 .category(product.getCategory())
+                .categoryDisplayName(toDisplayName(product.getCategory()))
                 .imageMediaIds(product.getImageMediaIds())
                 .build();
+    }
+
+    private String toDisplayName(Category category) {
+        String enumName = category.name();
+        return enumName.toLowerCase()
+                .replace("_", " ")
+                .substring(0, 1).toUpperCase()
+                + enumName.toLowerCase().replace("_", " ").substring(1);
     }
 
     public Product getById(String id) {
@@ -129,10 +138,10 @@ public class ProductService {
     public ProductResponseDTO getByIdWithSellerName(String id) {
         Product product = prodRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        
+
         User seller = userRepo.findById(product.getUserId())
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
-        
+
         ProductResponseDTO responseDTO = ProductResponseDTO.builder()
             .id(product.getId())
             .name(product.getName())
@@ -140,9 +149,11 @@ public class ProductService {
             .price(product.getPrice())
             .quantity(product.getQuantity())
             .sellerName(seller.getName())
+            .category(product.getCategory())
+            .categoryDisplayName(toDisplayName(product.getCategory()))
             .imageMediaIds(product.getImageMediaIds())
             .build();
-        
+
         return responseDTO;
     }
 

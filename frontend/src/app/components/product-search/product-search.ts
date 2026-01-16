@@ -2,17 +2,9 @@ import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { ProductService, Category, SearchParams } from '../../services/product';
 
-export interface SearchFilters {
-  name?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sellerName?: string;
-  sortBy?: string;
-  sortDir?: 'asc' | 'desc';
-  page?: number;
-  size?: number;
-}
+export interface SearchFilters extends SearchParams {}
 
 @Component({
   selector: 'app-product-search',
@@ -22,10 +14,11 @@ export interface SearchFilters {
 })
 export class ProductSearchComponent implements OnInit, OnDestroy {
   @Output() searchChanged = new EventEmitter<SearchFilters>();
-  
+
   searchForm: FormGroup;
   isCollapsed = false;
   private destroy$ = new Subject<void>();
+  categories: Category[] = [];
 
   sortOptions = [
     { value: 'name', label: 'Name' },
@@ -35,22 +28,25 @@ export class ProductSearchComponent implements OnInit, OnDestroy {
   ];
 
   sortDirections = [
-    { value: 'asc', label: 'Ascending (A-Z, 0-9)' },
-    { value: 'desc', label: 'Descending (Z-A, 9-0)' }
+    { value: 'asc', label: 'Ascending' },
+    { value: 'desc', label: 'Descending' }
   ];
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private productService: ProductService) {
     this.searchForm = this.fb.group({
       name: [''],
       minPrice: [null, [Validators.min(0)]],
       maxPrice: [null, [Validators.min(0)]],
       sellerName: [''],
+      category: [''],
       sortBy: ['name'],
       sortDir: ['asc']
     });
   }
 
   ngOnInit() {
+    this.loadCategories();
+
     this.searchForm.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
@@ -60,15 +56,27 @@ export class ProductSearchComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadCategories() {
+    this.productService.getCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (err) => {
+        console.error('Error loading categories:', err);
+      }
+    });
+  }
+
   onSearchChange() {
     const formValues = this.searchForm.value;
-    
+
     // Build search filters
     const filters: SearchFilters = {
       name: formValues.name || undefined,
       minPrice: formValues.minPrice ?? undefined,
       maxPrice: formValues.maxPrice ?? undefined,
       sellerName: formValues.sellerName || undefined,
+      category: formValues.category || undefined,
       sortBy: formValues.sortBy,
       sortDir: formValues.sortDir,
       page: 0, // Reset to first page on search
@@ -84,6 +92,7 @@ export class ProductSearchComponent implements OnInit, OnDestroy {
       minPrice: null,
       maxPrice: null,
       sellerName: '',
+      category: '',
       sortBy: 'name',
       sortDir: 'asc'
     });
