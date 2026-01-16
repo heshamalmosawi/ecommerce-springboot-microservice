@@ -1,0 +1,130 @@
+<div class="order-history-container">
+  <div class="order-history-header">
+    <h2>Order History</h2>
+    <div class="sort-controls">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy" [(ngModel)]="sortBy" (change)="onSortChange(sortBy)">
+        <option value="createdAt">Date</option>
+        <option value="totalPrice">Price</option>
+        <option value="status">Status</option>
+      </select>
+      <button class="sort-dir-btn" (click)="sortDir = sortDir === 'desc' ? 'asc' : 'desc'; loadOrders()">
+        {{ sortDir === 'desc' ? '↓' : '↑' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <p>Loading orders...</p>
+  </div>
+
+  <div class="error" *ngIf="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="no-orders" *ngIf="!loading && !error && orders.length === 0">
+    <p>No orders found.</p>
+  </div>
+
+  <div class="orders-list" *ngIf="!loading && !error">
+    @for (order of orders; track order.id) {
+      <div class="order-card" [class.expanded]="isOrderExpanded(order.id)">
+        <div class="order-summary" (click)="toggleOrderExpand(order.id)">
+          <div class="order-info">
+            <div class="order-id">Order #{{ order.id.substring(0, 8) }}</div>
+            <div class="order-date">{{ formatDate(order.createdAt) }}</div>
+          </div>
+          <div class="order-status">
+            <span class="status-badge" [class]="getStatusClass(order.status)">
+              {{ order.status }}
+            </span>
+          </div>
+          <div class="order-total">
+            <span class="total-label">Total:</span>
+            <span class="total-amount">${{ order.totalPrice.toFixed(2) }}</span>
+          </div>
+          <div class="expand-icon">
+            {{ isOrderExpanded(order.id) ? '▼' : '▶' }}
+          </div>
+        </div>
+
+        <div class="order-details" *ngIf="isOrderExpanded(order.id)">
+          <div class="detail-section">
+            <h3>Shipping Information</h3>
+            <div class="info-row">
+              <span class="info-label">Name:</span>
+              <span class="info-value">{{ order.fullName }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ order.email }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Phone:</span>
+              <span class="info-value">{{ order.internationalPhone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Address:</span>
+              <span class="info-value">{{ order.address }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">City:</span>
+              <span class="info-value">{{ order.city }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Postal Code:</span>
+              <span class="info-value">{{ order.postalCode }}</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Order Items</h3>
+            @for (item of order.orderItems; track item.productId) {
+              <div class="order-item">
+                <div class="item-name">{{ item.productName }}</div>
+                <div class="item-details">
+                  <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                  <span class="item-price">${{ item.price.toFixed(2) }}</span>
+                  <span class="item-total">${{ (item.quantity * item.price).toFixed(2) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="detail-section order-meta">
+            <div class="meta-row">
+              <span class="meta-label">Order ID:</span>
+              <span class="meta-value">{{ order.id }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Created:</span>
+              <span class="meta-value">{{ formatDate(order.createdAt) }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Updated:</span>
+              <span class="meta-value">{{ formatDate(order.updatedAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="pagination" *ngIf="!loading && !error && orders.length > 0">
+    <button 
+      class="pagination-btn" 
+      (click)="onPageChange(currentPage - 1)"
+      [disabled]="currentPage === 0">
+      Previous
+    </button>
+    <span class="page-info">
+      Page {{ currentPage + 1 }} of {{ totalPages }}
+    </span>
+    <button 
+      class="pagination-btn" 
+      (click)="onPageChange(currentPage + 1)"
+      [disabled]="currentPage >= totalPages - 1">
+      Next
+    </button>
+  </div>
+</div>

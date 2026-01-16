@@ -11,6 +11,7 @@ import { ProductDetail } from './components/product-detail/product-detail';
 import { EditProductComponent } from './components/edit-product/edit-product';
 import { Checkout } from './components/checkout/checkout';
 import { OrderConfirmation } from './components/order-confirmation/order-confirmation';
+import { OrderHistory } from './components/order-history/order-history';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,16 @@ export const routes: Routes = [
         component: OrderConfirmation
       },
       {
+        path: 'profile',
+        component: Profile,
+        canActivate: [authGuard]
+      },
+      {
+        path: 'profile/order-history',
+        component: OrderHistory,
+        canActivate: [authGuard]
+      },
+      {
         path: 'products/add',
         component: AddProductComponent,
         canActivate: [authGuard, roleGuard],
@@ -54,11 +65,6 @@ export const routes: Routes = [
         component: EditProductComponent,
         canActivate: [authGuard, roleGuard],
         data: { roles: ['seller'] }
-      },
-      {
-        path: 'profile',
-        component: Profile,
-        canActivate: [authGuard]
       }
     ]
   }
