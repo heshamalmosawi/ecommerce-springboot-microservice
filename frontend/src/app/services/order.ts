@@ -126,4 +126,27 @@ export class OrderService {
       })
     );
   }
+
+  getOrderById(orderId: string): Observable<Order> {
+    return this.http.get<Order>(`${this.API_URL}/orders/${orderId}`).pipe(
+      map(response => {
+        console.log('Order fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching order:', error);
+        let errorMessage = 'Failed to fetch order';
+        
+        if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
 }

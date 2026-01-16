@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.OrderItemDTO;
@@ -93,5 +95,17 @@ public class OrderService {
 
     public Page<Order> getMyOrders(String userId, org.springframework.data.domain.Pageable pageable) {
         return orderRepo.findByBuyerId(userId, pageable);
+    }
+
+    public Order getOrderById(String orderId) {
+        String userId = Utils.getCurrentUserId();
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found: " + orderId));
+        
+        if (!order.getBuyerId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to view this order");
+        }
+        
+        return order;
     }
 }

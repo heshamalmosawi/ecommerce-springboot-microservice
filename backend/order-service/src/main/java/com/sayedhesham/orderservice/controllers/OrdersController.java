@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,7 +73,7 @@ class OrdersController {
             return ResponseEntity.ok(orders);
         } catch (IllegalStateException ise) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
         }
     }
@@ -80,6 +82,22 @@ class OrdersController {
     public ResponseEntity<Object> addOrder(@Valid @RequestBody OrderDTO orderDTO) {
         try {
             return ResponseEntity.ok(orderSagaOrchestrator.startOrderSaga(orderDTO));
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
+        } catch (IllegalStateException ise) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Object> getOrderById(@PathVariable String orderId) {
+        try {
+            Order order = orderService.getOrderById(orderId);
+            return ResponseEntity.ok(order);
+        } catch (ResponseStatusException rse) {
+            return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
         } catch (IllegalArgumentException iae) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
         } catch (IllegalStateException ise) {

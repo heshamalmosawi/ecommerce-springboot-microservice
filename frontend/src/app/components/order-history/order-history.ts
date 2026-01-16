@@ -14,6 +14,9 @@ export class OrderHistory implements OnInit {
   orders: Order[] = [];
   loading = false;
   error = '';
+  searchMode = false;
+  searchOrderId = '';
+  searching = false;
   
   currentPage = 0;
   pageSize = 10;
@@ -34,6 +37,7 @@ export class OrderHistory implements OnInit {
   loadOrders(): void {
     this.loading = true;
     this.error = '';
+    this.searchMode = false;
     
     this.orderService.getUserOrders(this.currentPage, this.pageSize, this.sortBy, this.sortDir).subscribe({
       next: (page) => {
@@ -49,6 +53,45 @@ export class OrderHistory implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  searchOrder(): void {
+    if (!this.searchOrderId.trim()) {
+      this.loadOrders();
+      return;
+    }
+    
+    this.searching = true;
+    this.error = '';
+    this.searchMode = true;
+    
+    this.orderService.getOrderById(this.searchOrderId.trim()).subscribe({
+      next: (order) => {
+        this.orders = [order];
+        this.ordersPage = null;
+        this.searching = false;
+        this.expandedOrders.add(order.id);
+      },
+      error: (err) => {
+        console.error('Error searching order:', err);
+        this.error = err.message || 'Order not found. Please check the order ID.';
+        this.orders = [];
+        this.searching = false;
+      }
+    });
+  }
+
+  clearSearch(): void {
+    this.searchOrderId = '';
+    this.searchMode = false;
+    this.loadOrders();
+  }
+
+  onSearchEnter(event: Event): void {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key === 'Enter') {
+      this.searchOrder();
+    }
   }
 
   onPageChange(page: number): void {
