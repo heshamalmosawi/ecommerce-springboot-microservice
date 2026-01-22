@@ -65,6 +65,43 @@ export interface OrdersPage {
   empty: boolean;
 }
 
+// Purchase Analytics Types
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  SHIPPED = 'SHIPPED',
+  DELIVERED = 'DELIVERED',
+  FAILED = 'FAILED'
+}
+
+export interface DateRange {
+  start: string | null;  // YYYY-MM-DD format
+  end: string | null;    // YYYY-MM-DD format
+}
+
+export interface ProductAnalytics {
+  productId: string;
+  productName: string;
+  orderCount: number;
+  totalQuantity: number;
+  totalSpent: number;
+}
+
+export interface PurchaseSummary {
+  totalSpent: number;
+  orderCount: number;
+  productCount: number;
+  dateRange: DateRange | null;
+  mostPurchasedProducts: ProductAnalytics[];
+  topSpendingProducts: ProductAnalytics[];
+}
+
+export interface AnalyticsFilters {
+  startDate?: string;  // YYYY-MM-DD format
+  endDate?: string;    // YYYY-MM-DD format
+  status?: OrderStatus;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -156,6 +193,42 @@ export class OrderService {
         console.error('Error fetching order:', error);
         let errorMessage = 'Failed to fetch order';
         
+        if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  getPurchaseAnalytics(filters?: AnalyticsFilters): Observable<PurchaseSummary> {
+    const params: any = {};
+    
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+    if (filters?.status) {
+      params.status = filters.status;
+    }
+    
+    return this.http.get<PurchaseSummary>(`${this.API_URL}/orders/analytics/purchase-summary`, { params }).pipe(
+      map(response => {
+        console.log('Purchase analytics fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching purchase analytics:', error);
+        let errorMessage = 'Failed to fetch purchase analytics';
+        
+        // API returns plain text for errors
         if (error.error && typeof error.error === 'string') {
           errorMessage = error.error;
         } else if (error.error && error.error.message) {

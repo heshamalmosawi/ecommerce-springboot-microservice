@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
+import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.service.OrderSagaOrchestrator;
 import com.sayedhesham.orderservice.service.OrderService;
@@ -170,6 +171,59 @@ class OrdersController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+    
+    /**
+     * Get user's purchase analytics summary
+     * 
+     * @param status Filter by order status (optional)
+     * @param startDate Start date for filtering (ISO format: YYYY-MM-DD)
+     * @param endDate End date for filtering (ISO format: YYYY-MM-DD)
+     * @return Purchase summary with analytics
+     */
+    @GetMapping("/analytics/purchase-summary")
+    public ResponseEntity<Object> getPurchaseAnalytics(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            // Parse and validate status filter
+            Order.OrderStatus orderStatus = null;
+            if (status != null && !status.trim().isEmpty()) {
+                orderStatus = parseOrderStatus(status);
+            }
+            
+            // Parse and validate date filters
+            LocalDateTime start = null;
+            LocalDateTime end = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = parseDateToStartOfDay(startDate);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = parseDateToEndOfDay(endDate);
+            }
+            
+            // Validate date range
+            if (start != null && end != null && start.isAfter(end)) {
+                throw new IllegalArgumentException("Start date must be before or equal to end date");
+            }
+            
+            String userId = Utils.getCurrentUserId();
+            PurchaseSummaryDTO summary = orderService.getPurchaseAnalytics(
+                userId, orderStatus, start, end);
+            
+            return ResponseEntity.ok(summary);
+            
+        } catch (IllegalStateException ise) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred while fetching analytics");
         }
     }
 

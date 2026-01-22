@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
 
 public interface OrderRepositoryCustom {
@@ -14,5 +15,12 @@ public interface OrderRepositoryCustom {
         LocalDateTime startDate, 
         LocalDateTime endDate, 
         Pageable pageable
+    );
+    
+    PurchaseSummaryDTO getPurchaseAnalytics(
+        String buyerId,
+        Order.OrderStatus status,
+        LocalDateTime startDate,
+        LocalDateTime endDate
     );
 }

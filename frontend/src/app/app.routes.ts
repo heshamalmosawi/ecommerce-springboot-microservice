@@ -12,6 +12,7 @@ import { EditProductComponent } from './components/edit-product/edit-product';
 import { Checkout } from './components/checkout/checkout';
 import { OrderConfirmation } from './components/order-confirmation/order-confirmation';
 import { OrderHistory } from './components/order-history/order-history';
+import { PurchaseAnalytics } from './components/purchase-analytics/purchase-analytics';
 
 export const routes: Routes = [
   {
@@ -48,6 +49,11 @@ export const routes: Routes = [
       {
         path: 'profile/order-history',
         component: OrderHistory,
+        canActivate: [authGuard]
+      },
+      {
+        path: 'profile/analytics',
+        component: PurchaseAnalytics,
         canActivate: [authGuard]
       },
       {

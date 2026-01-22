@@ -10,8 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.sayedhesham.orderservice.dto.DateRangeDTO;
 import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.OrderItemDTO;
+import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.model.OrderItem;
 import com.sayedhesham.orderservice.model.Product;
@@ -112,5 +114,25 @@ public class OrderService {
         }
         
         return order;
+    }
+    
+    public PurchaseSummaryDTO getPurchaseAnalytics(
+            String userId,
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        
+        PurchaseSummaryDTO summary = orderRepo.getPurchaseAnalytics(
+            userId, status, startDate, endDate);
+        
+        // Add date range to response
+        if (startDate != null || endDate != null) {
+            summary.setDateRange(DateRangeDTO.builder()
+                .start(startDate != null ? startDate.toLocalDate().toString() : null)
+                .end(endDate != null ? endDate.toLocalDate().toString() : null)
+                .build());
+        }
+        
+        return summary;
     }
 }

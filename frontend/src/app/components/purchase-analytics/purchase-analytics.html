@@ -1,0 +1,166 @@
+<div class="analytics-container">
+  <div class="analytics-header">
+    <h2>Purchase Analytics</h2>
+    <button 
+      class="filter-toggle-btn" 
+      (click)="toggleFilters()"
+      [class.active]="hasActiveFilters()">
+      <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+      </svg>
+      Filters
+      <span class="filter-badge" *ngIf="hasActiveFilters()">{{ hasActiveFilters() ? '•' : '' }}</span>
+    </button>
+  </div>
+
+  <!-- Filters Panel -->
+  <div class="filters-panel" *ngIf="showFilters">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="startDate">Start Date</label>
+        <input 
+          id="startDate"
+          type="date" 
+          [(ngModel)]="filterStartDate"
+          class="filter-input">
+      </div>
+      
+      <div class="filter-group">
+        <label for="endDate">End Date</label>
+        <input 
+          id="endDate"
+          type="date" 
+          [(ngModel)]="filterEndDate"
+          class="filter-input">
+      </div>
+      
+      <div class="filter-group">
+        <label for="status">Order Status</label>
+        <select 
+          id="status"
+          [(ngModel)]="filterStatus"
+          class="filter-input">
+          <option *ngFor="let option of orderStatusOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="filter-actions">
+      <button 
+        class="apply-btn" 
+        (click)="applyFilters()"
+        [disabled]="loading">
+        Apply Filters
+      </button>
+      <button 
+        class="clear-btn" 
+        (click)="clearFilters()"
+        [disabled]="loading || !hasActiveFilters()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="error && !loading">
+    <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    {{ error }}
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading" *ngIf="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading analytics...</p>
+  </div>
+
+  <!-- Analytics Content -->
+  <div class="analytics-content" *ngIf="!loading && analytics">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="card">
+        <div class="card-icon total-spent">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ formatCurrency(analytics.totalSpent) }}</div>
+          <div class="card-label">Total Spent</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-icon orders">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ analytics.orderCount }}</div>
+          <div class="card-label">Total Orders</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-icon products">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ analytics.productCount }}</div>
+          <div class="card-label">Unique Products</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="analytics.orderCount === 0">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3>No Purchase Data Available</h3>
+      <p *ngIf="hasActiveFilters()">
+        No orders found matching your filters. Try adjusting your date range or status filter.
+      </p>
+      <p *ngIf="!hasActiveFilters()">
+        You haven't made any purchases yet. Start shopping to see your analytics!
+      </p>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section" *ngIf="analytics.orderCount > 0">
+      <!-- Most Purchased Products Chart -->
+      <div class="chart-container" *ngIf="analytics.mostPurchasedProducts.length > 0">
+        <h3 class="chart-title">
+          <svg class="chart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          Most Purchased Products
+          <span class="chart-subtitle">by number of orders</span>
+        </h3>
+        <div class="chart-wrapper">
+          <canvas #frequencyChartCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Top Spending Products Chart -->
+      <div class="chart-container" *ngIf="analytics.topSpendingProducts.length > 0">
+        <h3 class="chart-title">
+          <svg class="chart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Top Spending Products
+          <span class="chart-subtitle">by total amount spent</span>
+        </h3>
+        <div class="chart-wrapper">
+          <canvas #spendingChartCanvas></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
