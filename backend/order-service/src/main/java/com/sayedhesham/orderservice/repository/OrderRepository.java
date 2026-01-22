@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import com.sayedhesham.orderservice.model.Order;
 
-public interface OrderRepository extends MongoRepository<Order, String> {
+public interface OrderRepository extends MongoRepository<Order, String>, OrderRepositoryCustom {
     List<Order> findByBuyerId(String buyerId);
     Page<Order> findByBuyerId(String buyerId, Pageable pageable);
 }

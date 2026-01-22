@@ -26,6 +26,12 @@ export class OrderHistory implements OnInit {
   sortBy = 'createdAt';
   sortDir = 'desc';
 
+  // Filter properties
+  filterStatus = '';
+  filterStartDate = '';
+  filterEndDate = '';
+  showFilters = false;
+
   expandedOrders: Set<string> = new Set();
 
   constructor(private orderService: OrderService) {}
@@ -39,7 +45,15 @@ export class OrderHistory implements OnInit {
     this.error = '';
     this.searchMode = false;
     
-    this.orderService.getUserOrders(this.currentPage, this.pageSize, this.sortBy, this.sortDir).subscribe({
+    this.orderService.getUserOrders(
+      this.currentPage, 
+      this.pageSize, 
+      this.sortBy, 
+      this.sortDir,
+      this.filterStatus || undefined,
+      this.filterStartDate || undefined,
+      this.filterEndDate || undefined
+    ).subscribe({
       next: (page) => {
         this.ordersPage = page;
         this.orders = page.content;
@@ -108,6 +122,27 @@ export class OrderHistory implements OnInit {
     }
     this.currentPage = 0;
     this.loadOrders();
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+  }
+
+  applyFilters(): void {
+    this.currentPage = 0;
+    this.loadOrders();
+  }
+
+  clearFilters(): void {
+    this.filterStatus = '';
+    this.filterStartDate = '';
+    this.filterEndDate = '';
+    this.currentPage = 0;
+    this.loadOrders();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filterStatus || this.filterStartDate || this.filterEndDate);
   }
 
   toggleOrderExpand(orderId: string): void {

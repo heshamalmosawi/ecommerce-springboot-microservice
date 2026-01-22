@@ -99,15 +99,34 @@ export class OrderService {
     );
   }
 
-  getUserOrders(page: number = 0, size: number = 10, sortBy: string = 'createdAt', sortDir: string = 'desc'): Observable<OrdersPage> {
-    return this.http.get<OrdersPage>(`${this.API_URL}/orders`, {
-      params: {
-        page: page.toString(),
-        size: size.toString(),
-        sortBy: sortBy,
-        sortDir: sortDir
-      }
-    }).pipe(
+  getUserOrders(
+    page: number = 0, 
+    size: number = 10, 
+    sortBy: string = 'createdAt', 
+    sortDir: string = 'desc',
+    status?: string,
+    startDate?: string,
+    endDate?: string
+  ): Observable<OrdersPage> {
+    const params: any = {
+      page: page.toString(),
+      size: size.toString(),
+      sortBy: sortBy,
+      sortDir: sortDir
+    };
+    
+    // Add optional filter parameters if provided
+    if (status) {
+      params.status = status;
+    }
+    if (startDate) {
+      params.startDate = startDate;
+    }
+    if (endDate) {
+      params.endDate = endDate;
+    }
+    
+    return this.http.get<OrdersPage>(`${this.API_URL}/orders`, { params }).pipe(
       map(response => {
         console.log('Orders fetched successfully:', response);
         return response;

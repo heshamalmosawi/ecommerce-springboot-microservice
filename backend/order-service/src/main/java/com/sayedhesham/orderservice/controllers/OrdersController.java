@@ -1,5 +1,9 @@
 package com.sayedhesham.orderservice.controllers;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +60,10 @@ class OrdersController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
         try {
             // Validate page and size parameters
             if (page < 0) throw new IllegalArgumentException("Page parameter must be non-negative");
@@ -68,13 +75,72 @@ class OrdersController {
             
             Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            
+            // Parse and validate status filter
+            Order.OrderStatus orderStatus = null;
+            if (status != null && !status.trim().isEmpty()) {
+                orderStatus = parseOrderStatus(status);
+            }
+            
+            // Parse and validate date filters
+            LocalDateTime start = null;
+            LocalDateTime end = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = parseDateToStartOfDay(startDate);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = parseDateToEndOfDay(endDate);
+            }
+            
+            // Validate date range
+            if (start != null && end != null && start.isAfter(end)) {
+                throw new IllegalArgumentException("Start date must be before or equal to end date");
+            }
+            
             String userId = Utils.getCurrentUserId();
-            Page<Order> orders = orderService.getMyOrders(userId, pageable);
+            Page<Order> orders = orderService.getMyOrders(userId, pageable, orderStatus, start, end);
             return ResponseEntity.ok(orders);
         } catch (IllegalStateException ise) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Parse and validate order status
+     */
+    private Order.OrderStatus parseOrderStatus(String status) {
+        try {
+            return Order.OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status value. Allowed values: PENDING, PROCESSING, SHIPPED, DELIVERED, FAILED");
+        }
+    }
+    
+    /**
+     * Parse ISO date string to LocalDateTime at start of day (00:00:00)
+     */
+    private LocalDateTime parseDateToStartOfDay(String dateStr) {
+        try {
+            LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE);
+            return date.atStartOfDay();
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date format. Expected ISO date format (YYYY-MM-DD), got: " + dateStr);
+        }
+    }
+    
+    /**
+     * Parse ISO date string to LocalDateTime at end of day (23:59:59.999999999)
+     */
+    private LocalDateTime parseDateToEndOfDay(String dateStr) {
+        try {
+            LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE);
+            return date.atTime(23, 59, 59, 999999999);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Invalid date format. Expected ISO date format (YYYY-MM-DD), got: " + dateStr);
         }
     }
 

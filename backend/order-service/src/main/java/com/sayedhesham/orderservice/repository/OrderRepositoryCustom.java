@@ -1,0 +1,18 @@
+package com.sayedhesham.orderservice.repository;
+
+import java.time.LocalDateTime;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.sayedhesham.orderservice.model.Order;
+
+public interface OrderRepositoryCustom {
+    Page<Order> findByFilters(
+        String buyerId, 
+        Order.OrderStatus status, 
+        LocalDateTime startDate, 
+        LocalDateTime endDate, 
+        Pageable pageable
+    );
+}

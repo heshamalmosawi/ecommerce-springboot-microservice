@@ -13,6 +13,14 @@
           {{ sortDir === 'desc' ? 'Desc' : 'Asc' }}
         </button>
       </div>
+      <div class="filter-toggle">
+        <button class="filter-btn" (click)="toggleFilters()" [class.active]="hasActiveFilters()">
+          <span>{{ showFilters ? 'Hide Filters' : 'Show Filters' }}</span>
+          @if (hasActiveFilters()) {
+            <span class="filter-badge">•</span>
+          }
+        </button>
+      </div>
       <div class="search-controls">
         <input type="text" [(ngModel)]="searchOrderId" (keyup.enter)="onSearchEnter($event)"
           placeholder="Search by order ID..." class="search-input" [disabled]="searching" />
@@ -29,6 +37,39 @@
       </div>
     </div>
   </div>
+
+  @if (showFilters) {
+  <div class="filters-panel">
+    <div class="filter-group">
+      <label for="filterStatus">Status:</label>
+      <select id="filterStatus" [(ngModel)]="filterStatus">
+        <option value="">All</option>
+        <option value="PENDING">Pending</option>
+        <option value="PROCESSING">Processing</option>
+        <option value="SHIPPED">Shipped</option>
+        <option value="DELIVERED">Delivered</option>
+        <option value="FAILED">Failed</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filterStartDate">From Date:</label>
+      <input type="date" id="filterStartDate" [(ngModel)]="filterStartDate" />
+    </div>
+
+    <div class="filter-group">
+      <label for="filterEndDate">To Date:</label>
+      <input type="date" id="filterEndDate" [(ngModel)]="filterEndDate" />
+    </div>
+
+    <div class="filter-actions">
+      <button class="apply-btn" (click)="applyFilters()">Apply Filters</button>
+      @if (hasActiveFilters()) {
+      <button class="clear-filters-btn" (click)="clearFilters()">Clear All</button>
+      }
+    </div>
+  </div>
+  }
 
   @if (loading) {
   <div class="loading">

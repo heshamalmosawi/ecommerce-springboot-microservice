@@ -93,8 +93,13 @@ public class OrderService {
         orderRepo.save(order);
     }
 
-    public Page<Order> getMyOrders(String userId, org.springframework.data.domain.Pageable pageable) {
-        return orderRepo.findByBuyerId(userId, pageable);
+    public Page<Order> getMyOrders(
+            String userId, 
+            org.springframework.data.domain.Pageable pageable,
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        return orderRepo.findByFilters(userId, status, startDate, endDate, pageable);
     }
 
     public Order getOrderById(String orderId) {
