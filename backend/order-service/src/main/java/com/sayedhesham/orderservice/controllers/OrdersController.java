@@ -233,7 +233,6 @@ class OrdersController {
      * Shows best-selling products and revenue for authenticated seller
      * Requires SELLER role
      * 
-     * @param authHeader JWT authorization header
      * @param status Filter by order status (optional)
      * @param startDate Start date for filtering (ISO format: YYYY-MM-DD)
      * @param endDate End date for filtering (ISO format: YYYY-MM-DD)
@@ -243,30 +242,11 @@ class OrdersController {
     public ResponseEntity<Object> getSellerAnalytics(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(value = "Authorization", required = false) String authHeader) {
+            @RequestParam(required = false) String endDate) {
         System.out.println("[OrdersController] /analytics/seller-summary endpoint called");
         System.out.println("[OrdersController] Params - Status: " + status + ", StartDate: " + startDate + ", EndDate: " + endDate);
         
         try {
-            // Get auth header from request if not in param
-            if (authHeader == null || authHeader.isEmpty()) {
-                authHeader = org.springframework.web.context.request.RequestContextHolder
-                    .getRequestAttributes() instanceof org.springframework.web.context.request.ServletRequestAttributes 
-                    ? ((org.springframework.web.context.request.ServletRequestAttributes) 
-                        org.springframework.web.context.request.RequestContextHolder.getRequestAttributes())
-                        .getRequest().getHeader("Authorization")
-                    : null;
-            }
-            
-            System.out.println("[OrdersController] Auth header present: " + (authHeader != null && !authHeader.isEmpty()));
-            
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                System.err.println("[OrdersController] Missing or invalid Authorization header");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or invalid Authorization header");
-            }
-            
             // Parse and validate status filter
             Order.OrderStatus orderStatus = null;
             if (status != null && !status.trim().isEmpty()) {
@@ -292,7 +272,7 @@ class OrdersController {
             
             System.out.println("[OrdersController] Calling OrderService.getSellerAnalytics");
             SellerAnalyticsSummaryDTO summary = orderService.getSellerAnalytics(
-                authHeader, orderStatus, start, end);
+                orderStatus, start, end);
             
             System.out.println("[OrdersController] Successfully retrieved seller analytics");
             return ResponseEntity.ok(summary);

@@ -15,9 +15,9 @@ public interface ProductClient {
 
     /**
      * Get all product IDs for the authenticated seller
-     * @param authHeader JWT token with "Bearer " prefix
+     * Authorization header is automatically propagated via Feign interceptor
      * @return List of product IDs owned by the seller
      */
     @GetMapping("/seller/ids")
-    List<String> getSellerProductIds(@RequestHeader("Authorization") String authHeader);
+    List<String> getSellerProductIds();
 }

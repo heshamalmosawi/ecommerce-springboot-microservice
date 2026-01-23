@@ -143,26 +143,23 @@ public class OrderService {
     
     /**
      * Get seller analytics by retrieving product IDs from product-service
-     * and aggregating order data
-     * @param authHeader JWT token to pass to product-service
+     * and aggregating order data. Uses automatic token propagation via Feign interceptor.
      * @param status Order status filter (optional)
      * @param startDate Start date for filtering (optional)
      * @param endDate End date for filtering (optional)
      * @return Seller analytics summary
      */
     public SellerAnalyticsSummaryDTO getSellerAnalytics(
-            String authHeader,
             Order.OrderStatus status,
             LocalDateTime startDate,
             LocalDateTime endDate) {
         
         System.out.println("[OrderService] Starting getSellerAnalytics");
-        System.out.println("[OrderService] Auth header present: " + (authHeader != null && !authHeader.isEmpty()));
         System.out.println("[OrderService] Filters - Status: " + status + ", StartDate: " + startDate + ", EndDate: " + endDate);
         
-        // Get seller's product IDs from product-service
+        // Get seller's product IDs from product-service (token propagated automatically)
         System.out.println("[OrderService] Calling product-service to get seller's product IDs");
-        List<String> productIds = productClient.getSellerProductIds(authHeader);
+        List<String> productIds = productClient.getSellerProductIds();
         System.out.println("[OrderService] Retrieved " + productIds.size() + " product IDs from product-service");
         
         // Get analytics from repository
