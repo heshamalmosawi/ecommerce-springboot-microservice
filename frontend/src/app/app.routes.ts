@@ -14,6 +14,7 @@ import { OrderConfirmation } from './components/order-confirmation/order-confirm
 import { OrderHistory } from './components/order-history/order-history';
 import { PurchaseAnalytics } from './components/purchase-analytics/purchase-analytics';
 import { SellerAnalytics } from './components/seller-analytics/seller-analytics';
+import { SellerOrders } from './components/seller-orders/seller-orders';
 
 export const routes: Routes = [
   {
@@ -60,6 +61,12 @@ export const routes: Routes = [
       {
         path: 'seller/analytics',
         component: SellerAnalytics,
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['seller'] }
+      },
+      {
+        path: 'seller/orders',
+        component: SellerOrders,
         canActivate: [authGuard, roleGuard],
         data: { roles: ['seller'] }
       },

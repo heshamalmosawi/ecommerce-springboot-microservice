@@ -3,17 +3,17 @@ import { CommonModule } from '@angular/common';
 import { OrderService, Order, OrdersPage } from '../../services/order';
 import { FormsModule } from '@angular/forms';
 import { OrderCancelModal } from '../order-cancel-modal/order-cancel-modal';
-import { OrderActions } from '../order-actions/order-actions';
-import { AuthService } from '../../services/auth';
+import { OrderStatusModal } from '../order-status-modal/order-status-modal';
 
 @Component({
-  selector: 'app-order-history',
-  imports: [CommonModule, FormsModule, OrderCancelModal, OrderActions],
-  templateUrl: './order-history.html',
-  styleUrl: './order-history.scss'
+  selector: 'app-seller-orders',
+  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal],
+  templateUrl: './seller-orders.html',
+  styleUrl: './seller-orders.scss'
 })
-export class OrderHistory implements OnInit {
+export class SellerOrders implements OnInit {
   @ViewChild(OrderCancelModal) cancelModal!: OrderCancelModal;
+  @ViewChild(OrderStatusModal) statusModal!: OrderStatusModal;
 
   ordersPage: OrdersPage | null = null;
   orders: Order[] = [];
@@ -23,6 +23,8 @@ export class OrderHistory implements OnInit {
   searchOrderId = '';
   searching = false;
   cancelling = false;
+  updatingStatus = false;
+  selectedOrderId = '';
 
   currentPage = 0;
   pageSize = 10;
@@ -38,15 +40,10 @@ export class OrderHistory implements OnInit {
   showFilters = false;
 
   expandedOrders: Set<string> = new Set();
-  userRole: 'client' | 'seller' = 'client';
 
-  constructor(
-    private orderService: OrderService,
-    private authService: AuthService
-  ) {}
+  constructor(private orderService: OrderService) {}
 
   ngOnInit(): void {
-    this.userRole = this.authService.getCurrentUserValue()?.role || 'client';
     this.loadOrders();
   }
 
@@ -54,11 +51,11 @@ export class OrderHistory implements OnInit {
     this.loading = true;
     this.error = '';
     this.searchMode = false;
-    
-    this.orderService.getUserOrders(
-      this.currentPage, 
-      this.pageSize, 
-      this.sortBy, 
+
+    this.orderService.getSellerOrders(
+      this.currentPage,
+      this.pageSize,
+      this.sortBy,
       this.sortDir,
       this.filterStatus || undefined,
       this.filterStartDate || undefined,
@@ -72,7 +69,7 @@ export class OrderHistory implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading orders:', err);
+        console.error('Error loading seller orders:', err);
         this.error = 'Failed to load orders. Please try again.';
         this.loading = false;
       }
@@ -84,11 +81,11 @@ export class OrderHistory implements OnInit {
       this.loadOrders();
       return;
     }
-    
+
     this.searching = true;
     this.error = '';
     this.searchMode = true;
-    
+
     this.orderService.getOrderById(this.searchOrderId.trim()).subscribe({
       next: (order) => {
         this.orders = [order];
@@ -187,16 +184,25 @@ export class OrderHistory implements OnInit {
     }
   }
 
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
   onCancelOrderClick(orderId: string): void {
+    this.selectedOrderId = orderId;
     this.cancelModal.show();
   }
 
   onCancelOrderConfirm(reason: string): void {
-    const orderIdToCancel = this.expandedOrders.values().next().value;
-    if (!orderIdToCancel) return;
-
     this.cancelling = true;
-    this.orderService.cancelOrder(orderIdToCancel, reason).subscribe({
+    this.orderService.cancelOrder(this.selectedOrderId, reason).subscribe({
       next: (response) => {
         this.cancelModal.hide();
         this.cancelling = false;
@@ -210,14 +216,25 @@ export class OrderHistory implements OnInit {
     });
   }
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  onUpdateStatusClick(orderId: string, currentStatus: string): void {
+    this.selectedOrderId = orderId;
+    this.statusModal.currentStatus = currentStatus;
+    this.statusModal.show();
+  }
+
+  onUpdateStatusConfirm(data: {status: string, reason: string}): void {
+    this.updatingStatus = true;
+    this.orderService.updateOrderStatus(this.selectedOrderId, data.status, data.reason).subscribe({
+      next: (response) => {
+        this.statusModal.hide();
+        this.updatingStatus = false;
+        this.loadOrders();
+      },
+      error: (err) => {
+        console.error('Error updating order status:', err);
+        this.updatingStatus = false;
+        this.statusModal.hide();
+      }
     });
   }
 }

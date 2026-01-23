@@ -1,6 +1,6 @@
-<div class="order-history-container">
-  <div class="order-history-header">
-    <h2>Order History</h2>
+<div class="seller-orders-container">
+  <div class="orders-header">
+    <h2>Manage Orders</h2>
     <div class="header-controls">
       <div class="sort-controls">
         <label for="sortBy">Sort by:</label>
@@ -116,7 +116,7 @@
       @if (isOrderExpanded(order.id)) {
       <div class="order-details">
         <div class="detail-section">
-          <h3>Shipping Information</h3>
+          <h3>Customer Information</h3>
           <div class="info-row">
             <span class="info-label">Name:</span>
             <span class="info-value">{{ order.fullName }}</span>
@@ -163,6 +163,10 @@
             <span class="meta-value">{{ order.id }}</span>
           </div>
           <div class="meta-row">
+            <span class="meta-label">Status:</span>
+            <span class="status-badge-small" [class]="getStatusClass(order.status)">{{ order.status }}</span>
+          </div>
+          <div class="meta-row">
             <span class="meta-label">Created:</span>
             <span class="meta-value">{{ formatDate(order.createdAt) }}</span>
           </div>
@@ -172,24 +176,41 @@
           </div>
         </div>
 
-        @if (isOrderExpanded(order.id)) {
-        <app-order-actions
-          [orderId]="order.id"
-          [currentStatus]="order.status"
-          [userRole]="userRole"
-          (cancelClick)="onCancelOrderClick(order.id)"
-        ></app-order-actions>
-        }
+        <div class="detail-section order-actions-section">
+          <div class="actions-title">Order Actions</div>
+          <div class="seller-actions">
+            @if (['PENDING', 'PROCESSING', 'SHIPPED'].includes(order.status)) {
+            <button
+              class="action-btn btn-update"
+              (click)="onUpdateStatusClick(order.id, order.status)"
+              type="button"
+            >
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Update Status
+            </button>
+            }
+
+            @if (['PENDING', 'PROCESSING'].includes(order.status)) {
+            <button
+              class="action-btn btn-cancel"
+              (click)="onCancelOrderClick(order.id)"
+              type="button"
+            >
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              Cancel Order
+            </button>
+            }
+          </div>
+        </div>
       </div>
       }
     </div>
     }
   </div>
-
-  <app-order-cancel-modal
-    (confirm)="onCancelOrderConfirm($event)"
-    (cancel)="cancelModal.hide()"
-  ></app-order-cancel-modal>
   }
 
   @if (!loading && !error && orders.length > 0) {
@@ -205,4 +226,14 @@
     </button>
   </div>
   }
+
+  <app-order-cancel-modal
+    (confirm)="onCancelOrderConfirm($event)"
+    (cancel)="cancelModal.hide()"
+  ></app-order-cancel-modal>
+
+  <app-order-status-modal
+    (confirm)="onUpdateStatusConfirm($event)"
+    (cancel)="statusModal.hide()"
+  ></app-order-status-modal>
 </div>
