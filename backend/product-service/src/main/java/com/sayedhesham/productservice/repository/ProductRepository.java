@@ -33,4 +33,7 @@ public interface ProductRepository extends MongoRepository<Product, String>, Pro
 
     @Query("{ 'name': { $regex: ?0, $options: 'i' }, 'price': { $gte: ?1, $lte: ?2 }, 'userId': { $in: ?3 } }")
     Page<Product> findByNameContainingIgnoreCaseAndPriceBetweenAndUserIds(String name, Double minPrice, Double maxPrice, List<String> userIds, Pageable pageable);
+
+    @Query(value = "{ 'userId': ?0 }", fields = "{ '_id': 1 }")
+    List<Product> findProductIdsByUserId(String userId);
 }

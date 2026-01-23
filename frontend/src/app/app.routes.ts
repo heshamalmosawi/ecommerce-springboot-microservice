@@ -13,6 +13,7 @@ import { Checkout } from './components/checkout/checkout';
 import { OrderConfirmation } from './components/order-confirmation/order-confirmation';
 import { OrderHistory } from './components/order-history/order-history';
 import { PurchaseAnalytics } from './components/purchase-analytics/purchase-analytics';
+import { SellerAnalytics } from './components/seller-analytics/seller-analytics';
 
 export const routes: Routes = [
   {
@@ -55,6 +56,12 @@ export const routes: Routes = [
         path: 'profile/analytics',
         component: PurchaseAnalytics,
         canActivate: [authGuard]
+      },
+      {
+        path: 'seller/analytics',
+        component: SellerAnalytics,
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['seller'] }
       },
       {
         path: 'products/add',

@@ -1,0 +1,252 @@
+<div class="analytics-container">
+  <div class="analytics-header">
+    <div class="header-left">
+      <h2>Seller Analytics</h2>
+      <p class="subtitle">Track your sales performance and revenue</p>
+    </div>
+    <div class="header-right">
+      @if (!loading && analytics) {
+      <div class="date-range-display">
+        <svg class="calendar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        {{ getDateRangeDisplay() }}
+      </div>
+      }
+      <button class="filter-toggle-btn" (click)="toggleFilters()" [class.active]="hasActiveFilters()">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+          </path>
+        </svg>
+        Filters
+        @if (hasActiveFilters()) {
+        <span class="filter-badge">•</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Panel -->
+  @if (showFilters) {
+  <div class="filters-panel">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="startDate">Start Date</label>
+        <input id="startDate" type="date" [(ngModel)]="filterStartDate" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="endDate">End Date</label>
+        <input id="endDate" type="date" [(ngModel)]="filterEndDate" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="status">Order Status</label>
+        <select id="status" [(ngModel)]="filterStatus" class="filter-input">
+          @for (option of orderStatusOptions; track option.value) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="apply-btn" (click)="applyFilters()" [disabled]="loading">
+        Apply Filters
+      </button>
+      <button class="clear-btn" (click)="clearFilters()" [disabled]="loading || !hasActiveFilters()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+  }
+
+  <!-- Error Message -->
+  @if (error && !loading) {
+  <div class="error-message">
+    <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    {{ error }}
+  </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading) {
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <p>Loading analytics...</p>
+  </div>
+  }
+
+  <!-- Analytics Content -->
+  @if (!loading && analytics) {
+  <div class="analytics-content">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="card revenue">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+            </path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ formatCurrency(analytics.totalRevenue) }}</div>
+          <div class="card-label">Total Revenue</div>
+        </div>
+      </div>
+
+      <div class="card orders">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ formatNumber(analytics.totalOrders) }}</div>
+          <div class="card-label">Total Orders</div>
+        </div>
+      </div>
+
+      <div class="card units">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ formatNumber(analytics.totalUnitsSold) }}</div>
+          <div class="card-label">Units Sold</div>
+        </div>
+      </div>
+
+      <div class="card products">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+            </path>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-value">{{ formatNumber(analytics.productCount) }}</div>
+          <div class="card-label">Products Sold</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    @if (analytics.productCount === 0) {
+    <div class="empty-state">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+        </path>
+      </svg>
+      <h3>No Sales Yet</h3>
+      @if (hasActiveFilters()) {
+      <p>No sales found matching your filters. Try adjusting your date range or status filter.</p>
+      } @else {
+      <p>Start selling to see your analytics here. Add products to your store to get started!</p>
+      }
+    </div>
+    }
+
+    <!-- Charts and Products Section -->
+    @if (analytics.productCount > 0) {
+    <div class="charts-section">
+      <!-- Best-Selling Products Chart -->
+      @if (analytics.bestSellingProducts.length > 0) {
+      <div class="chart-container">
+        <h3 class="chart-title">
+          <svg class="chart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+            </path>
+          </svg>
+          Best-Selling Products
+          <span class="chart-subtitle">by units sold</span>
+        </h3>
+        <div class="chart-wrapper">
+          <canvas #bestSellingChartCanvas></canvas>
+        </div>
+        <!-- Product Details Table -->
+        <div class="product-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Units Sold</th>
+                <th>Orders</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of analytics.bestSellingProducts; track product.productId) {
+              <tr>
+                <td class="product-name">{{ product.productName }}</td>
+                <td>{{ formatNumber(product.unitsSold) }}</td>
+                <td>{{ formatNumber(product.orderCount) }}</td>
+                <td>{{ formatCurrency(product.totalRevenue) }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+
+      <!-- Top Revenue Products Chart -->
+      @if (analytics.topRevenueProducts.length > 0) {
+      <div class="chart-container">
+        <h3 class="chart-title">
+          <svg class="chart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+            </path>
+          </svg>
+          Top Revenue Products
+          <span class="chart-subtitle">by total revenue generated</span>
+        </h3>
+        <div class="chart-wrapper">
+          <canvas #topRevenueChartCanvas></canvas>
+        </div>
+        <!-- Product Details Table -->
+        <div class="product-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Revenue</th>
+                <th>Units Sold</th>
+                <th>Orders</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of analytics.topRevenueProducts; track product.productId) {
+              <tr>
+                <td class="product-name">{{ product.productName }}</td>
+                <td class="revenue-cell">{{ formatCurrency(product.totalRevenue) }}</td>
+                <td>{{ formatNumber(product.unitsSold) }}</td>
+                <td>{{ formatNumber(product.orderCount) }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+  }
+</div>

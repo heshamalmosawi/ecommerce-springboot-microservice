@@ -1,6 +1,8 @@
 package com.sayedhesham.productservice.controllers;
 
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -151,6 +153,30 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get product IDs for the current seller (authenticated user)
+     * Used by order-service for seller analytics
+     * Requires SELLER role
+     */
+    @GetMapping("/seller/ids")
+    public ResponseEntity<Object> getMyProductIds() {
+        System.out.println("[ProductsController] /seller/ids endpoint called");
+        
+        try {
+            System.out.println("[ProductsController] Calling ProductService.getMyProductIds");
+            List<String> productIds = prodService.getMyProductIds();
+            System.out.println("[ProductsController] Successfully retrieved " + productIds.size() + " product IDs");
+            return ResponseEntity.ok(productIds);
+        } catch (IllegalArgumentException e) {
+            System.err.println("[ProductsController] Unauthorized error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[ProductsController] Internal server error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 }

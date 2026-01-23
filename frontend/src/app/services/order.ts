@@ -102,13 +102,32 @@ export interface AnalyticsFilters {
   status?: OrderStatus;
 }
 
+// Seller Analytics Types
+export interface SellerProductAnalytics {
+  productId: string;
+  productName: string;
+  unitsSold: number;
+  orderCount: number;
+  totalRevenue: number;
+}
+
+export interface SellerAnalyticsSummary {
+  totalRevenue: number;
+  totalOrders: number;
+  totalUnitsSold: number;
+  productCount: number;
+  dateRange: DateRange | null;
+  bestSellingProducts: SellerProductAnalytics[];
+  topRevenueProducts: SellerProductAnalytics[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
   private readonly API_URL = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   createOrder(orderData: CreateOrderRequest, token: string): Observable<Order> {
     return this.http.post<Order>(`${this.API_URL}/orders`, orderData, {
@@ -124,22 +143,22 @@ export class OrderService {
       catchError(error => {
         console.error('Error creating order:', error);
         let errorMessage = 'Failed to create order';
-        
+
         if (error.error && error.error.message) {
           errorMessage = error.error.message;
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         return throwError(() => new Error(errorMessage));
       })
     );
   }
 
   getUserOrders(
-    page: number = 0, 
-    size: number = 10, 
-    sortBy: string = 'createdAt', 
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'createdAt',
     sortDir: string = 'desc',
     status?: string,
     startDate?: string,
@@ -151,7 +170,7 @@ export class OrderService {
       sortBy: sortBy,
       sortDir: sortDir
     };
-    
+
     // Add optional filter parameters if provided
     if (status) {
       params.status = status;
@@ -162,7 +181,7 @@ export class OrderService {
     if (endDate) {
       params.endDate = endDate;
     }
-    
+
     return this.http.get<OrdersPage>(`${this.API_URL}/orders`, { params }).pipe(
       map(response => {
         console.log('Orders fetched successfully:', response);
@@ -171,13 +190,13 @@ export class OrderService {
       catchError(error => {
         console.error('Error fetching orders:', error);
         let errorMessage = 'Failed to fetch orders';
-        
+
         if (error.error && error.error.message) {
           errorMessage = error.error.message;
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         return throwError(() => new Error(errorMessage));
       })
     );
@@ -192,7 +211,7 @@ export class OrderService {
       catchError(error => {
         console.error('Error fetching order:', error);
         let errorMessage = 'Failed to fetch order';
-        
+
         if (error.error && typeof error.error === 'string') {
           errorMessage = error.error;
         } else if (error.error && error.error.message) {
@@ -200,7 +219,7 @@ export class OrderService {
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         return throwError(() => new Error(errorMessage));
       })
     );
@@ -208,7 +227,7 @@ export class OrderService {
 
   getPurchaseAnalytics(filters?: AnalyticsFilters): Observable<PurchaseSummary> {
     const params: any = {};
-    
+
     if (filters?.startDate) {
       params.startDate = filters.startDate;
     }
@@ -218,7 +237,7 @@ export class OrderService {
     if (filters?.status) {
       params.status = filters.status;
     }
-    
+
     return this.http.get<PurchaseSummary>(`${this.API_URL}/orders/analytics/purchase-summary`, { params }).pipe(
       map(response => {
         console.log('Purchase analytics fetched successfully:', response);
@@ -227,7 +246,7 @@ export class OrderService {
       catchError(error => {
         console.error('Error fetching purchase analytics:', error);
         let errorMessage = 'Failed to fetch purchase analytics';
-        
+
         // API returns plain text for errors
         if (error.error && typeof error.error === 'string') {
           errorMessage = error.error;
@@ -236,7 +255,43 @@ export class OrderService {
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  getSellerAnalytics(filters?: AnalyticsFilters): Observable<SellerAnalyticsSummary> {
+    const params: any = {};
+
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+    if (filters?.status) {
+      params.status = filters.status;
+    }
+
+    return this.http.get<SellerAnalyticsSummary>(`${this.API_URL}/orders/analytics/seller-summary`, { params }).pipe(
+      map(response => {
+        console.log('Seller analytics fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching seller analytics:', error);
+        let errorMessage = 'Failed to fetch seller analytics';
+
+        // API returns plain text for errors
+        if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
         return throwError(() => new Error(errorMessage));
       })
     );

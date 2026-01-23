@@ -24,6 +24,8 @@ import org.springframework.stereotype.Repository;
 
 import com.sayedhesham.orderservice.dto.ProductAnalyticsDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
+import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
+import com.sayedhesham.orderservice.dto.SellerProductAnalyticsDTO;
 import com.sayedhesham.orderservice.model.Order;
 
 @Repository
@@ -144,6 +146,110 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .collect(Collectors.toList()))
             .topSpendingProducts(productAnalytics.stream()
                 .sorted(Comparator.comparing(ProductAnalyticsDTO::getTotalSpent).reversed())
+                .limit(5)
+                .collect(Collectors.toList()))
+            .build();
+    }
+    
+    @Override
+    public SellerAnalyticsSummaryDTO getSellerAnalytics(
+            List<String> productIds,
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        
+        // If no products, return empty analytics
+        if (productIds == null || productIds.isEmpty()) {
+            return SellerAnalyticsSummaryDTO.builder()
+                .totalRevenue(0.0)
+                .totalOrders(0)
+                .totalUnitsSold(0)
+                .productCount(0)
+                .bestSellingProducts(List.of())
+                .topRevenueProducts(List.of())
+                .build();
+        }
+        
+        // Stage 1: Match orders containing seller's products
+        Criteria criteria = Criteria.where("orderItems.productId").in(productIds);
+        
+        // Add status filter (exclude FAILED orders by default)
+        if (status != null) {
+            criteria.and("status").is(status);
+        } else {
+            // Only count successful orders
+            criteria.and("status").ne(Order.OrderStatus.FAILED);
+        }
+        
+        // Add date range filters
+        if (startDate != null && endDate != null) {
+            criteria.and("createdAt").gte(startDate).lte(endDate);
+        } else if (startDate != null) {
+            criteria.and("createdAt").gte(startDate);
+        } else if (endDate != null) {
+            criteria.and("createdAt").lte(endDate);
+        }
+        
+        MatchOperation matchStage = Aggregation.match(criteria);
+        
+        // Stage 2: Unwind order items to process each product separately
+        UnwindOperation unwindStage = Aggregation.unwind("orderItems");
+        
+        // Stage 3: Match again to filter only seller's products after unwind
+        MatchOperation matchProductsStage = Aggregation.match(
+            Criteria.where("orderItems.productId").in(productIds)
+        );
+        
+        // Stage 4: Group by product to calculate statistics
+        GroupOperation groupByProduct = Aggregation.group("orderItems.productId")
+            .first("orderItems.productName").as("productName")
+            .count().as("orderCount")
+            .sum("orderItems.quantity").as("unitsSold")
+            .sum(ArithmeticOperators.Multiply.valueOf("orderItems.price")
+                .multiplyBy("orderItems.quantity")).as("totalRevenue");
+        
+        // Stage 5: Sort by units sold (for best-selling)
+        SortOperation sortByUnitsSold = Aggregation.sort(Sort.Direction.DESC, "unitsSold");
+        
+        // Execute aggregation
+        Aggregation aggregation = Aggregation.newAggregation(
+            matchStage,
+            unwindStage,
+            matchProductsStage,
+            groupByProduct,
+            sortByUnitsSold
+        );
+        
+        AggregationResults<SellerProductAnalyticsDTO> results = 
+            mongoTemplate.aggregate(aggregation, "orders", SellerProductAnalyticsDTO.class);
+        
+        List<SellerProductAnalyticsDTO> productAnalytics = results.getMappedResults();
+        
+        // Calculate overall statistics
+        double totalRevenue = productAnalytics.stream()
+            .mapToDouble(SellerProductAnalyticsDTO::getTotalRevenue)
+            .sum();
+        
+        int totalUnitsSold = productAnalytics.stream()
+            .mapToInt(SellerProductAnalyticsDTO::getUnitsSold)
+            .sum();
+        
+        // Count total orders containing seller's products
+        int totalOrders = (int) mongoTemplate.count(
+            Query.query(criteria), Order.class);
+        
+        // Build response
+        return SellerAnalyticsSummaryDTO.builder()
+            .totalRevenue(totalRevenue)
+            .totalOrders(totalOrders)
+            .totalUnitsSold(totalUnitsSold)
+            .productCount(productAnalytics.size())
+            .bestSellingProducts(productAnalytics.stream()
+                .sorted(Comparator.comparing(SellerProductAnalyticsDTO::getUnitsSold).reversed())
+                .limit(5)
+                .collect(Collectors.toList()))
+            .topRevenueProducts(productAnalytics.stream()
+                .sorted(Comparator.comparing(SellerProductAnalyticsDTO::getTotalRevenue).reversed())
                 .limit(5)
                 .collect(Collectors.toList()))
             .build();

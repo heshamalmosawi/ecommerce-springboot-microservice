@@ -59,7 +59,7 @@ public class ProductService {
         Page<Product> products = prodRepo.searchProducts(name, minPrice, maxPrice, userIds, category, pageable);
         return products.map(this::convertToProductResponseDTO);
     }
-    
+
     private ProductResponseDTO convertToProductResponseDTO(Product product) {
         User seller = userRepo.findById(product.getUserId())
                 .orElse(null);
@@ -92,16 +92,16 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
         ProductResponseDTO responseDTO = ProductResponseDTO.builder()
-            .id(product.getId())
-            .name(product.getName())
-            .description(product.getDescription())
-            .price(product.getPrice())
-            .quantity(product.getQuantity())
-            .sellerName(seller.getName())
-            .category(product.getCategory())
-            .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
-            .imageMediaIds(product.getImageMediaIds())
-            .build();
+                .id(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .sellerName(seller.getName())
+                .category(product.getCategory())
+                .categoryDisplayName(product.getCategory() != null ? product.getCategory().toDisplayName() : "Other")
+                .imageMediaIds(product.getImageMediaIds())
+                .build();
 
         return responseDTO;
     }
@@ -131,26 +131,26 @@ public class ProductService {
 
         // Create product first without images
         Product product = Product.builder()
-            .name(productDTO.getName())
-            .description(productDTO.getDescription())
-            .price(productDTO.getPrice())
-            .quantity(productDTO.getQuantity())
-            .category(productDTO.getCategory())
-            .userId(currentUserId)
-            .imageMediaIds(new ArrayList<>())
-            .build();
-        
+                .name(productDTO.getName())
+                .description(productDTO.getDescription())
+                .price(productDTO.getPrice())
+                .quantity(productDTO.getQuantity())
+                .category(productDTO.getCategory())
+                .userId(currentUserId)
+                .imageMediaIds(new ArrayList<>())
+                .build();
+
         Product savedProduct = prodRepo.save(product);
-        
+
         // Publish image upload events via Kafka (asynchronous)
         if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
             for (String imageBase64 : productDTO.getImages()) {
                 String contentType = extractContentType(imageBase64);
                 productImageEventService.publishProductImageUploadEvent(
-                    savedProduct.getId(), imageBase64, contentType);
+                        savedProduct.getId(), imageBase64, contentType);
             }
         }
-        
+
         return savedProduct;
     }
 
@@ -271,7 +271,7 @@ public class ProductService {
         // Handle image operations
         List<String> currentImageIds = existingProduct.getImageMediaIds();
         List<String> retainedIds = productDTO.getRetainedImageIds();
-        
+
         // Initialize lists if null
         if (currentImageIds == null) {
             currentImageIds = new ArrayList<>();
@@ -303,7 +303,7 @@ public class ProductService {
             for (String imageBase64 : productDTO.getImages()) {
                 String contentType = extractContentType(imageBase64);
                 productImageEventService.publishProductImageUploadEvent(
-                    id, imageBase64, contentType);
+                        id, imageBase64, contentType);
             }
         }
 
@@ -334,5 +334,33 @@ public class ProductService {
             return userDetails.getUsername();
         }
         throw new IllegalArgumentException("User not authenticated");
+    }
+
+    /**
+     * Get all product IDs for the current seller (authenticated user)
+     *
+     * @return List of product IDs
+     */
+    public List<String> getMyProductIds() {
+        System.out.println("[ProductService] getMyProductIds called");
+        
+        try {
+            String currentUserId = getCurrentUserId();
+            System.out.println("[ProductService] Current user ID: " + currentUserId);
+            
+            List<Product> products = prodRepo.findProductIdsByUserId(currentUserId);
+            System.out.println("[ProductService] Found " + products.size() + " products for user");
+            
+            List<String> productIds = products.stream()
+                    .map(Product::getId)
+                    .toList();
+            
+            System.out.println("[ProductService] Returning product IDs: " + productIds);
+            return productIds;
+        } catch (Exception e) {
+            System.err.println("[ProductService] Error in getMyProductIds: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
