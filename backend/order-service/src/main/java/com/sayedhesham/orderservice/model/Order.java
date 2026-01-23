@@ -52,6 +52,7 @@ public class Order {
         PROCESSING,
         SHIPPED,
         DELIVERED,
+        CANCELLED,
         FAILED
     }
 }

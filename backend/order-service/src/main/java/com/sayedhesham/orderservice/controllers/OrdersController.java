@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
+import com.sayedhesham.orderservice.dto.OrderStatusResponseDTO;
+import com.sayedhesham.orderservice.dto.OrderStatusUpdateDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
 import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
@@ -118,7 +122,7 @@ class OrdersController {
         try {
             return Order.OrderStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status value. Allowed values: PENDING, PROCESSING, SHIPPED, DELIVERED, FAILED");
+            throw new IllegalArgumentException("Invalid status value. Allowed values: PENDING, PROCESSING, SHIPPED, DELIVERED, FAILED, CANCELLED");
         }
     }
     
@@ -288,6 +292,73 @@ class OrdersController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An error occurred while fetching seller analytics: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Update order status (Sellers only)
+     * Allows sellers to change order status for orders containing their products
+     * Only forward status transitions are allowed
+     * 
+     * @param orderId The order ID to update
+     * @param updateDTO The status update request
+     * @return OrderStatusResponseDTO with update details
+     */
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<Object> updateOrderStatus(
+            @PathVariable String orderId,
+            @Valid @RequestBody OrderStatusUpdateDTO updateDTO) {
+        try {
+            String sellerId = Utils.getCurrentUserId();
+            
+            OrderStatusResponseDTO response = orderService.updateOrderStatus(
+                orderId, 
+                updateDTO.getStatus(), 
+                sellerId
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
+        } catch (IllegalStateException ise) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Cancel order (Buyers and Sellers)
+     * Allows users to cancel orders in PENDING or PROCESSING status
+     * Automatically triggers inventory release for PROCESSING orders
+     * 
+     * @param orderId The order ID to cancel
+     * @param body Optional request body with cancellation reason
+     * @return OrderStatusResponseDTO with cancellation details
+     */
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<Object> cancelOrder(
+            @PathVariable String orderId,
+            @RequestBody(required = false) Map<String, String> body) {
+        try {
+            String userId = Utils.getCurrentUserId();
+            String userRole = Utils.getCurrentUserRole();
+            String reason = body != null ? body.get("reason") : null;
+            
+            OrderStatusResponseDTO response = orderService.cancelOrder(
+                orderId, 
+                userId, 
+                userRole, 
+                reason
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(iae.getMessage());
+        } catch (IllegalStateException ise) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sayedhesham.productservice.dto.InventoryReleaseEvent;
 import com.sayedhesham.productservice.dto.OrderEvent;
 import com.sayedhesham.productservice.dto.ProductReservationRequest;
 import com.sayedhesham.productservice.model.Product;
@@ -37,6 +38,9 @@ public class InventoryReservationService {
 
     @Value("${kafka.topic.products.reservation.failed}")
     private String productReservationFailedTopic;
+
+    @Value("${kafka.topic.order.inventory.release}")
+    private String orderInventoryReleaseTopic;
 
     @KafkaListener(topics = "${kafka.topic.order.product.event}", groupId = "productservice-group")
     @Transactional
@@ -111,5 +115,45 @@ public class InventoryReservationService {
         }
 
         return reservationResponse;
+    }
+
+    @KafkaListener(topics = "${kafka.topic.order.inventory.release}", groupId = "productservice-group")
+    @Transactional
+    public void handleInventoryReleaseEvent(String message) {
+        try {
+            logger.info("Received inventory release event: {}", message);
+            InventoryReleaseEvent releaseEvent = objectMapper.readValue(message, InventoryReleaseEvent.class);
+            
+            if (!"RELEASE".equals(releaseEvent.getAction())) {
+                logger.warn("Ignoring invalid action for order {}: {}", releaseEvent.getOrderId(), releaseEvent.getAction());
+                return;
+            }
+            
+            releaseInventory(releaseEvent);
+            logger.info("Successfully released inventory for order: {}", releaseEvent.getOrderId());
+        } catch (JsonProcessingException e) {
+            logger.error("Error parsing inventory release event: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error handling inventory release event: {}", e.getMessage(), e);
+        }
+    }
+
+    private void releaseInventory(InventoryReleaseEvent releaseEvent) {
+        for (InventoryReleaseEvent.OrderItem item : releaseEvent.getOrderItems()) {
+            String productId = item.getProductId();
+            Integer quantity = item.getQuantity();
+            
+            try {
+                Product product = productRepository.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+                
+                product.setQuantity(product.getQuantity() + quantity);
+                productRepository.save(product);
+                logger.info("Released {} units of product: {}", quantity, productId);
+            } catch (Exception e) {
+                logger.error("Error releasing inventory for product {}: {}", productId, e.getMessage(), e);
+                throw e;
+            }
+        }
     }
 }
