@@ -10,10 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.sayedhesham.orderservice.client.ProductClient;
 import com.sayedhesham.orderservice.dto.DateRangeDTO;
 import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.OrderItemDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
+import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.model.OrderItem;
 import com.sayedhesham.orderservice.model.Product;
@@ -28,6 +30,9 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepo;
+    
+    @Autowired
+    private ProductClient productClient;
 
     public Order create(OrderDTO orderDTO) {
         System.out.println("OrderService: Starting order creation");
@@ -133,6 +138,45 @@ public class OrderService {
                 .build());
         }
         
+        return summary;
+    }
+    
+    /**
+     * Get seller analytics by retrieving product IDs from product-service
+     * and aggregating order data. Uses automatic token propagation via Feign interceptor.
+     * @param status Order status filter (optional)
+     * @param startDate Start date for filtering (optional)
+     * @param endDate End date for filtering (optional)
+     * @return Seller analytics summary
+     */
+    public SellerAnalyticsSummaryDTO getSellerAnalytics(
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        
+        System.out.println("[OrderService] Starting getSellerAnalytics");
+        System.out.println("[OrderService] Filters - Status: " + status + ", StartDate: " + startDate + ", EndDate: " + endDate);
+        
+        // Get seller's product IDs from product-service (token propagated automatically)
+        System.out.println("[OrderService] Calling product-service to get seller's product IDs");
+        List<String> productIds = productClient.getSellerProductIds();
+        System.out.println("[OrderService] Retrieved " + productIds.size() + " product IDs from product-service");
+        
+        // Get analytics from repository
+        System.out.println("[OrderService] Querying order repository for analytics");
+        SellerAnalyticsSummaryDTO summary = orderRepo.getSellerAnalytics(
+            productIds, status, startDate, endDate);
+        System.out.println("[OrderService] Analytics retrieved successfully");
+        
+        // Add date range to response
+        if (startDate != null || endDate != null) {
+            summary.setDateRange(DateRangeDTO.builder()
+                .start(startDate != null ? startDate.toLocalDate().toString() : null)
+                .end(endDate != null ? endDate.toLocalDate().toString() : null)
+                .build());
+        }
+        
+        System.out.println("[OrderService] Returning seller analytics summary");
         return summary;
     }
 }

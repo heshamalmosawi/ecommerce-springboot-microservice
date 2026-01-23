@@ -16,16 +16,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
+import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.service.OrderSagaOrchestrator;
 import com.sayedhesham.orderservice.service.OrderService;
@@ -224,6 +225,69 @@ class OrdersController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An error occurred while fetching analytics");
+        }
+    }
+    
+    /**
+     * Get seller's sales analytics summary
+     * Shows best-selling products and revenue for authenticated seller
+     * Requires SELLER role
+     * 
+     * @param status Filter by order status (optional)
+     * @param startDate Start date for filtering (ISO format: YYYY-MM-DD)
+     * @param endDate End date for filtering (ISO format: YYYY-MM-DD)
+     * @return Seller analytics summary with best-selling products and revenue
+     */
+    @GetMapping("/analytics/seller-summary")
+    public ResponseEntity<Object> getSellerAnalytics(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        System.out.println("[OrdersController] /analytics/seller-summary endpoint called");
+        System.out.println("[OrdersController] Params - Status: " + status + ", StartDate: " + startDate + ", EndDate: " + endDate);
+        
+        try {
+            // Parse and validate status filter
+            Order.OrderStatus orderStatus = null;
+            if (status != null && !status.trim().isEmpty()) {
+                orderStatus = parseOrderStatus(status);
+            }
+            
+            // Parse and validate date filters
+            LocalDateTime start = null;
+            LocalDateTime end = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = parseDateToStartOfDay(startDate);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = parseDateToEndOfDay(endDate);
+            }
+            
+            // Validate date range
+            if (start != null && end != null && start.isAfter(end)) {
+                throw new IllegalArgumentException("Start date must be before or equal to end date");
+            }
+            
+            System.out.println("[OrdersController] Calling OrderService.getSellerAnalytics");
+            SellerAnalyticsSummaryDTO summary = orderService.getSellerAnalytics(
+                orderStatus, start, end);
+            
+            System.out.println("[OrdersController] Successfully retrieved seller analytics");
+            return ResponseEntity.ok(summary);
+            
+        } catch (IllegalStateException ise) {
+            System.err.println("[OrdersController] Unauthorized: " + ise.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("[OrdersController] Bad request: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[OrdersController] Internal server error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred while fetching seller analytics: " + e.getMessage());
         }
     }
 

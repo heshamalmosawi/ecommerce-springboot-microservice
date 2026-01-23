@@ -49,6 +49,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeHttpRequestsCustomizer -> authorizeHttpRequestsCustomizer
                 .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                .requestMatchers(HttpMethod.GET, "/seller/ids").hasRole("SELLER")
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasRole("SELLER")
                 )
