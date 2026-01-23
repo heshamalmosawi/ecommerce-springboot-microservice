@@ -180,6 +180,65 @@ class OrdersController {
     }
     
     /**
+     * Get seller's orders (orders containing seller's products)
+     * @param page Page number (default 0)
+     * @param size Page size (default 10)
+     * @param sortBy Sort field (default createdAt)
+     * @param sortDir Sort direction asc/desc (default desc)
+     * @param status Filter by order status (optional)
+     * @param startDate Start date for filtering (ISO format: YYYY-MM-DD)
+     * @param endDate End date for filtering (ISO format: YYYY-MM-DD)
+     * @return Page of orders containing seller's products
+     */
+    @GetMapping("/seller")
+    public ResponseEntity<Object> getSellerOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        try {
+            if (page < 0) throw new IllegalArgumentException("Page parameter must be non-negative");
+            if (size <= 0 || size > 100) throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+
+            String[] allowedFields = {"createdAt", "totalPrice", "status"};
+            if (!java.util.Arrays.asList(allowedFields).contains(sortBy)) throw new IllegalArgumentException("Invalid sortBy parameter");
+            
+            Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            
+            Order.OrderStatus orderStatus = null;
+            if (status != null && !status.trim().isEmpty()) {
+                orderStatus = parseOrderStatus(status);
+            }
+            
+            LocalDateTime start = null;
+            LocalDateTime end = null;
+            
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = parseDateToStartOfDay(startDate);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = parseDateToEndOfDay(endDate);
+            }
+            
+            if (start != null && end != null && start.isAfter(end)) {
+                throw new IllegalArgumentException("Start date must be before or equal to end date");
+            }
+            
+            Page<Order> orders = orderService.getSellerOrders(orderStatus, start, end, pageable);
+            return ResponseEntity.ok(orders);
+        } catch (IllegalStateException ise) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
+
+    /**
      * Get user's purchase analytics summary
      * 
      * @param status Filter by order status (optional)

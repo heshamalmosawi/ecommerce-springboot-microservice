@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -192,6 +192,33 @@ public class OrderService {
     }
 
     /**
+     * Get orders where seller has products
+     * @param status Order status filter (optional)
+     * @param startDate Start date for filtering (optional)
+     * @param endDate End date for filtering (optional)
+     * @param pageable Pagination parameters
+     * @return Page of orders containing seller's products
+     */
+    public Page<Order> getSellerOrders(
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            org.springframework.data.domain.Pageable pageable) {
+        
+        System.out.println("[OrderService] Starting getSellerOrders");
+        System.out.println("[OrderService] Filters - Status: " + status + ", StartDate: " + startDate + ", EndDate: " + endDate);
+        
+        List<String> productIds = productClient.getSellerProductIds();
+        System.out.println("[OrderService] Retrieved " + productIds.size() + " product IDs from product-service");
+        
+        Page<Order> orders = orderRepo.findSellerOrders(
+            productIds, status, startDate, endDate, pageable);
+        System.out.println("[OrderService] Retrieved " + orders.getTotalElements() + " orders containing seller's products");
+        
+        return orders;
+    }
+
+    /**
      * Change order status (for sellers only)
      * 
      * @param orderId The order ID to update
@@ -346,5 +373,6 @@ public class OrderService {
     }
 
     @Autowired
+    @Lazy
     private OrderSagaOrchestrator orderSagaOrchestrator;
 }

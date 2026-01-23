@@ -32,4 +32,12 @@ public interface OrderRepositoryCustom {
         LocalDateTime startDate,
         LocalDateTime endDate
     );
+    
+    Page<Order> findSellerOrders(
+        List<String> productIds,
+        Order.OrderStatus status,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        Pageable pageable
+    );
 }

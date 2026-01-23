@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeHttpRequestsCustomizer -> authorizeHttpRequestsCustomizer
                 .requestMatchers(HttpMethod.GET, "/greeting").permitAll()
                 .requestMatchers(HttpMethod.GET, "/analytics/seller-summary").hasRole("SELLER")
+                .requestMatchers(HttpMethod.GET, "/seller").hasRole("SELLER")
                 .requestMatchers(HttpMethod.PATCH, "/{orderId}/status").hasRole("SELLER")
                 .anyRequest().authenticated()
                 )
