@@ -1,23 +1,33 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { OrderHistory } from './order-history';
 import { OrderService } from '../../services/order';
+import { AuthService } from '../../services/auth';
 import { of } from 'rxjs';
 
 describe('OrderHistory', () => {
   let component: OrderHistory;
   let fixture: ComponentFixture<OrderHistory>;
   let mockOrderService: jasmine.SpyObj<OrderService>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     mockOrderService = jasmine.createSpyObj('OrderService', ['getUserOrders']);
+    const mockAuthService = jasmine.createSpyObj('AuthService', ['getCurrentUserValue']);
+    mockAuthService.getCurrentUserValue.and.returnValue({ role: 'client' });
 
     await TestBed.configureTestingModule({
       imports: [OrderHistory],
       providers: [
-        { provide: OrderService, useValue: mockOrderService }
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        { provide: OrderService, useValue: mockOrderService },
+        { provide: AuthService, useValue: mockAuthService }
       ]
     }).compileComponents();
 
+    httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrderHistory);
     component = fixture.componentInstance;
   });
@@ -48,7 +58,7 @@ describe('OrderHistory', () => {
 
     component.ngOnInit();
 
-    expect(mockOrderService.getUserOrders).toHaveBeenCalledWith(0, 10, 'createdAt', 'desc');
+    expect(mockOrderService.getUserOrders).toHaveBeenCalledWith(0, 10, 'createdAt', 'desc', undefined, undefined, undefined);
   });
 
   it('should toggle order expansion', () => {
