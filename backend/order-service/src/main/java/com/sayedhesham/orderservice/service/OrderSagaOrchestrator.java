@@ -2,6 +2,7 @@ package com.sayedhesham.orderservice.service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,9 @@ public class OrderSagaOrchestrator {
 
     @Value("${kafka.topic.order.product.event}")
     private String orderProductEventTopic;
+
+    @Value("${kafka.topic.order.inventory.release}")
+    private String orderInventoryReleaseTopic;
 
     @Transactional
     public Order startOrderSaga(OrderDTO orderDTO) {
@@ -88,6 +92,37 @@ public class OrderSagaOrchestrator {
             }
         } catch (Exception e) {
             logger.error("Error handling product failed callback: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Publish inventory release event when order is cancelled
+     * This allows the product-service to release reserved inventory
+     * 
+     * @param order The cancelled order
+     */
+    public void publishInventoryReleaseEvent(Order order) {
+        try {
+            // Create release event payload
+            Map<String, Object> releaseEvent = Map.of(
+                "orderId", order.getId(),
+                "action", "RELEASE",
+                "orderItems", order.getOrderItems().stream()
+                    .map(item -> Map.of(
+                        "productId", item.getProductId(),
+                        "quantity", item.getQuantity()
+                    ))
+                    .collect(Collectors.toList())
+            );
+            
+            String eventJson = objectMapper.writeValueAsString(releaseEvent);
+            kafkaTemplate.send(orderInventoryReleaseTopic, eventJson);
+            
+            logger.info("Published inventory release event for order: {}", order.getId());
+        } catch (JsonProcessingException e) {
+            logger.error("Error serializing inventory release event for order {}: {}", 
+                     order.getId(), e.getMessage());
+            throw new RuntimeException("Failed to publish inventory release event", e);
         }
     }
 

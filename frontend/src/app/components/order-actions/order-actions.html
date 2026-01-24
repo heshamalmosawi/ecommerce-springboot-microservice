@@ -1,0 +1,31 @@
+@if (showActions) {
+<div class="order-actions">
+  <div class="actions-container">
+    @if (canUpdateStatus) {
+      <button
+        class="action-btn btn-update"
+        (click)="onUpdateStatus()"
+        type="button"
+      >
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        Update Status
+      </button>
+    }
+
+    @if (canCancel) {
+      <button
+        class="action-btn btn-cancel"
+        (click)="onCancelOrder()"
+        type="button"
+      >
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        Cancel Order
+      </button>
+    }
+  </div>
+</div>
+}

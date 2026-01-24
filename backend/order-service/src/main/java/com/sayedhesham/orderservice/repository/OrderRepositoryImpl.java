@@ -302,4 +302,41 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
                 .topRevenueProducts(topRevenueProducts)
                 .build();
     }
+
+    @Override
+    public Page<Order> findSellerOrders(
+            List<String> productIds,
+            Order.OrderStatus status,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Pageable pageable) {
+
+        Query query = new Query();
+
+        if (productIds == null || productIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        query.addCriteria(Criteria.where("orderItems.productId").in(productIds));
+
+        if (status != null) {
+            query.addCriteria(Criteria.where("status").is(status));
+        }
+
+        if (startDate != null && endDate != null) {
+            query.addCriteria(Criteria.where("createdAt").gte(startDate).lte(endDate));
+        } else if (startDate != null) {
+            query.addCriteria(Criteria.where("createdAt").gte(startDate));
+        } else if (endDate != null) {
+            query.addCriteria(Criteria.where("createdAt").lte(endDate));
+        }
+
+        long total = mongoTemplate.count(query, Order.class);
+
+        query.with(pageable);
+
+        List<Order> orders = mongoTemplate.find(query, Order.class);
+
+        return new PageImpl<>(orders, pageable, total);
+    }
 }

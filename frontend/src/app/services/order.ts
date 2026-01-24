@@ -71,13 +71,23 @@ export enum OrderStatus {
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
   FAILED = 'FAILED'
 }
 
 export interface DateRange {
-  start: string | null;  // YYYY-MM-DD format
-  end: string | null;    // YYYY-MM-DD format
+  start: string | null;
+  end: string | null;
 }
+
+export interface OrderStatusUpdateResponse {
+  orderId: string;
+  oldStatus: string;
+  newStatus: string;
+  message: string;
+}
+
+export interface OrderCancellationResponse extends OrderStatusUpdateResponse {}
 
 export interface ProductAnalytics {
   productId: string;
@@ -283,10 +293,107 @@ export class OrderService {
         console.error('Error fetching seller analytics:', error);
         let errorMessage = 'Failed to fetch seller analytics';
 
-        // API returns plain text for errors
         if (error.error && typeof error.error === 'string') {
           errorMessage = error.error;
         } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  updateOrderStatus(orderId: string, status: string, reason?: string): Observable<OrderStatusUpdateResponse> {
+    const body: any = { status };
+    if (reason) {
+      body.reason = reason;
+    }
+
+    return this.http.patch<OrderStatusUpdateResponse>(`${this.API_URL}/orders/${orderId}/status`, body).pipe(
+      map(response => {
+        console.log('Order status updated successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error updating order status:', error);
+        let errorMessage = 'Failed to update order status';
+
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  cancelOrder(orderId: string, reason?: string): Observable<OrderCancellationResponse> {
+    const body: any = {};
+    if (reason) {
+      body.reason = reason;
+    }
+
+    return this.http.patch<OrderCancellationResponse>(`${this.API_URL}/orders/${orderId}/cancel`, body).pipe(
+      map(response => {
+        console.log('Order cancelled successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error cancelling order:', error);
+        let errorMessage = 'Failed to cancel order';
+
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  getSellerOrders(
+    page: number = 0,
+    size: number = 10,
+    sortBy: string = 'createdAt',
+    sortDir: string = 'desc',
+    status?: string,
+    startDate?: string,
+    endDate?: string
+  ): Observable<OrdersPage> {
+    const params: any = {
+      page: page.toString(),
+      size: size.toString(),
+      sortBy: sortBy,
+      sortDir: sortDir
+    };
+
+    if (status) {
+      params.status = status;
+    }
+    if (startDate) {
+      params.startDate = startDate;
+    }
+    if (endDate) {
+      params.endDate = endDate;
+    }
+
+    return this.http.get<OrdersPage>(`${this.API_URL}/orders/seller`, { params }).pipe(
+      map(response => {
+        console.log('Seller orders fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching seller orders:', error);
+        let errorMessage = 'Failed to fetch seller orders';
+
+        if (error.error && error.error.message) {
           errorMessage = error.error.message;
         } else if (error.message) {
           errorMessage = error.message;
