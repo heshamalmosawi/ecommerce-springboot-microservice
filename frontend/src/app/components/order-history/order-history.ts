@@ -3,17 +3,19 @@ import { CommonModule } from '@angular/common';
 import { OrderService, Order, OrdersPage } from '../../services/order';
 import { FormsModule } from '@angular/forms';
 import { OrderCancelModal } from '../order-cancel-modal/order-cancel-modal';
+import { OrderStatusModal } from '../order-status-modal/order-status-modal';
 import { OrderActions } from '../order-actions/order-actions';
 import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-order-history',
-  imports: [CommonModule, FormsModule, OrderCancelModal, OrderActions],
+  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderActions],
   templateUrl: './order-history.html',
   styleUrl: './order-history.scss'
 })
 export class OrderHistory implements OnInit {
   @ViewChild(OrderCancelModal) cancelModal!: OrderCancelModal;
+  @ViewChild(OrderStatusModal) statusModal!: OrderStatusModal;
 
   ordersPage: OrdersPage | null = null;
   orders: Order[] = [];
@@ -23,6 +25,8 @@ export class OrderHistory implements OnInit {
   searchOrderId = '';
   searching = false;
   cancelling = false;
+  updatingStatus = false;
+  selectedOrderId = '';
 
   currentPage = 0;
   pageSize = 10;
@@ -206,6 +210,28 @@ export class OrderHistory implements OnInit {
         console.error('Error cancelling order:', err);
         this.cancelling = false;
         this.cancelModal.hide();
+      }
+    });
+  }
+
+  onUpdateStatusClick(orderId: string, currentStatus: string): void {
+    this.selectedOrderId = orderId;
+    this.statusModal.currentStatus = currentStatus;
+    this.statusModal.show();
+  }
+
+  onUpdateStatusConfirm(data: {status: string, reason: string}): void {
+    this.updatingStatus = true;
+    this.orderService.updateOrderStatus(this.selectedOrderId, data.status, data.reason).subscribe({
+      next: (response) => {
+        this.statusModal.hide();
+        this.updatingStatus = false;
+        this.loadOrders();
+      },
+      error: (err) => {
+        console.error('Error updating order status:', err);
+        this.updatingStatus = false;
+        this.statusModal.hide();
       }
     });
   }

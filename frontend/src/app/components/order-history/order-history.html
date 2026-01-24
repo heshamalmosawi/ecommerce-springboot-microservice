@@ -17,7 +17,7 @@
         <button class="filter-btn" (click)="toggleFilters()" [class.active]="hasActiveFilters()">
           <span>{{ showFilters ? 'Hide Filters' : 'Show Filters' }}</span>
           @if (hasActiveFilters()) {
-            <span class="filter-badge">•</span>
+          <span class="filter-badge">•</span>
           }
         </button>
       </div>
@@ -173,12 +173,9 @@
         </div>
 
         @if (isOrderExpanded(order.id)) {
-        <app-order-actions
-          [orderId]="order.id"
-          [currentStatus]="order.status"
-          [userRole]="userRole"
+        <app-order-actions [orderId]="order.id" [currentStatus]="order.status" [userRole]="userRole"
           (cancelClick)="onCancelOrderClick(order.id)"
-        ></app-order-actions>
+          (updateStatusClick)="onUpdateStatusClick(order.id, order.status)"></app-order-actions>
         }
       </div>
       }
@@ -186,10 +183,11 @@
     }
   </div>
 
-  <app-order-cancel-modal
-    (confirm)="onCancelOrderConfirm($event)"
-    (cancel)="cancelModal.hide()"
-  ></app-order-cancel-modal>
+  <app-order-cancel-modal (confirm)="onCancelOrderConfirm($event)"
+    (cancel)="cancelModal.hide()"></app-order-cancel-modal>
+
+  <app-order-status-modal (confirm)="onUpdateStatusConfirm($event)"
+    (cancel)="statusModal.hide()"></app-order-status-modal>
   }
 
   @if (!loading && !error && orders.length > 0) {
