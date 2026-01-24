@@ -176,6 +176,10 @@
           </div>
         </div>
 
+        <div class="detail-section">
+          <app-order-status-history [statusHistory]="order.statusHistory" [fallbackStatus]="order.status" [fallbackDate]="order.createdAt"></app-order-status-history>
+        </div>
+
         <div class="detail-section order-actions-section">
           <div class="actions-title">Order Actions</div>
           <div class="seller-actions">

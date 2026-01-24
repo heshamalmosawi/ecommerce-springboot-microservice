@@ -19,8 +19,8 @@ export class OrderStatusModal {
   reason = '';
 
   private readonly statusTransitions: { [key: string]: string[] } = {
-    'PENDING': ['PROCESSING'],
-    'PROCESSING': ['SHIPPED'],
+    'PENDING': ['PROCESSING', 'CANCELLED'],
+    'PROCESSING': ['SHIPPED', 'CANCELLED'],
     'SHIPPED': ['DELIVERED']
   };
 

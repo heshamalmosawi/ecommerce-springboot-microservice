@@ -47,6 +47,8 @@ public class Order {
 
     private LocalDateTime updatedAt;
 
+    private List<StatusHistory> statusHistory;
+
     public enum OrderStatus {
         PENDING,
         PROCESSING,
