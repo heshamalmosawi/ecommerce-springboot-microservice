@@ -24,8 +24,8 @@ export class OrderStatusHistory {
     );
   }
 
-  getStatusClass(status: string): string {
-    const statusLower = status.toLowerCase();
+  getStatusClass(status: OrderStatus | string): string {
+    const statusLower = String(status).toLowerCase();
     switch (statusLower) {
       case 'pending':
         return 'status-pending';
@@ -44,8 +44,8 @@ export class OrderStatusHistory {
     }
   }
 
-  getStatusIcon(status: string): string {
-    const statusLower = status.toLowerCase();
+  getStatusIcon(status: OrderStatus | string): string {
+    const statusLower = String(status).toLowerCase();
     switch (statusLower) {
       case 'pending':
         return '⏳';
