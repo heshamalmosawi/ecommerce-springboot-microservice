@@ -124,6 +124,7 @@ public class OrderService {
                 .build());
 
         order.setStatus(status);
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepo.save(order);
     }
 
