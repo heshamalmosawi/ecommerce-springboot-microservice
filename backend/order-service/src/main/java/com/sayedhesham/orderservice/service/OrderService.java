@@ -284,7 +284,7 @@ public class OrderService {
         
         // 2. Validate user authorization
         boolean isAuthorized = false;
-        if ("BUYER".equals(userRole)) {
+        if ("CLIENT".equals(userRole)) {
             isAuthorized = order.getBuyerId().equals(userId);
         } else if ("SELLER".equals(userRole)) {
             isAuthorized = isSellerOrderOwner(order, userId);
