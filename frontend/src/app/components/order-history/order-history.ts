@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { OrderCancelModal } from '../order-cancel-modal/order-cancel-modal';
 import { OrderStatusModal } from '../order-status-modal/order-status-modal';
 import { OrderActions } from '../order-actions/order-actions';
+import { OrderStatusHistory } from '../order-status-history/order-status-history';
 import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-order-history',
-  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderActions],
+  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderActions, OrderStatusHistory],
   templateUrl: './order-history.html',
   styleUrl: './order-history.scss'
 })

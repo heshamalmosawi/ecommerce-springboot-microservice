@@ -1,0 +1,35 @@
+<div class="status-history-container">
+  @if (hasStatusHistory) {
+  <div class="status-timeline">
+    <h3 class="timeline-title">Order Status History</h3>
+    @for (entry of sortedHistory; track $index) {
+    <div class="timeline-entry" [class.latest]="isLatest($index)">
+      <div class="timeline-marker">
+        <span class="status-icon">{{ getStatusIcon(entry.status) }}</span>
+      </div>
+      <div class="timeline-content">
+        <div class="status-badge" [class]="getStatusClass(entry.status)">
+          {{ entry.status }}
+        </div>
+        <div class="timestamp">{{ formatDate(entry.changedAt) }}</div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (fallbackStatus) {
+  <div class="single-status">
+    <div class="single-status-badge" [class]="getStatusClass(fallbackStatus)">
+      <span class="status-icon">{{ getStatusIcon(fallbackStatus) }}</span>
+      <span class="status-text">{{ fallbackStatus }}</span>
+    </div>
+    @if (fallbackDate) {
+    <div class="single-timestamp">Created: {{ formatDate(fallbackDate) }}</div>
+    }
+  </div>
+  } @else {
+  <div class="no-history">
+    <span class="no-history-icon">📋</span>
+    <span class="no-history-text">No status history available</span>
+  </div>
+  }
+</div>

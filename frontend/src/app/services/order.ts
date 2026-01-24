@@ -26,6 +26,11 @@ export interface OrderItemResponse {
   price: number;
 }
 
+export interface StatusHistory {
+  status: OrderStatus;
+  changedAt: string;
+}
+
 export interface Order {
   id: string;
   buyerId: string;
@@ -40,6 +45,7 @@ export interface Order {
   status: string;
   createdAt: string;
   updatedAt: string;
+  statusHistory: StatusHistory[] | null;
 }
 
 export interface Pageable {

@@ -44,6 +44,7 @@ describe('AddProductComponent', () => {
     expect(form.valid).toBeFalsy();
 
     form.controls['name'].setValue('Test Product');
+    form.controls['category'].setValue('Electronics');
     form.controls['description'].setValue('Test Description');
     form.controls['price'].setValue('10.99');
     form.controls['quantity'].setValue('5');

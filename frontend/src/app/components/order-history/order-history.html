@@ -172,6 +172,10 @@
           </div>
         </div>
 
+        <div class="detail-section">
+          <app-order-status-history [statusHistory]="order.statusHistory" [fallbackStatus]="order.status" [fallbackDate]="order.createdAt"></app-order-status-history>
+        </div>
+
         @if (isOrderExpanded(order.id)) {
         <app-order-actions [orderId]="order.id" [currentStatus]="order.status" [userRole]="userRole"
           (cancelClick)="onCancelOrderClick(order.id)"

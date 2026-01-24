@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder } from '@angular/forms';
 
 import { LoginComponent } from './login';
@@ -21,6 +21,10 @@ describe('LoginComponent', () => {
         {
           provide: Router,
           useValue: { navigate: jasmine.createSpy('navigate') }
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: { get: jasmine.createSpy('get') } } }
         },
         FormBuilder
       ]

@@ -4,10 +4,11 @@ import { OrderService, Order, OrdersPage } from '../../services/order';
 import { FormsModule } from '@angular/forms';
 import { OrderCancelModal } from '../order-cancel-modal/order-cancel-modal';
 import { OrderStatusModal } from '../order-status-modal/order-status-modal';
+import { OrderStatusHistory } from '../order-status-history/order-status-history';
 
 @Component({
   selector: 'app-seller-orders',
-  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal],
+  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderStatusHistory],
   templateUrl: './seller-orders.html',
   styleUrl: './seller-orders.scss'
 })

@@ -28,6 +28,7 @@ import com.sayedhesham.orderservice.exceptions.UnauthorizedOrderAccessException;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.model.OrderItem;
 import com.sayedhesham.orderservice.model.Product;
+import com.sayedhesham.orderservice.model.StatusHistory;
 import com.sayedhesham.orderservice.repository.OrderRepository;
 import com.sayedhesham.orderservice.repository.ProductRepository;
 
@@ -84,6 +85,12 @@ public class OrderService {
         // Create and save order
         System.out.println("OrderService: Creating order");
         LocalDateTime now = LocalDateTime.now();
+        List<StatusHistory> statusHistory = new ArrayList<>();
+        statusHistory.add(StatusHistory.builder()
+                .status(Order.OrderStatus.PENDING)
+                .changedAt(now)
+                .build());
+
         Order order = Order.builder()
                 .buyerId(userId)
                 .email(orderDTO.getEmail())
@@ -97,6 +104,7 @@ public class OrderService {
                 .status(Order.OrderStatus.PENDING)
                 .createdAt(now)
                 .updatedAt(now)
+                .statusHistory(statusHistory)
                 .build();
 
         System.out.println("OrderService: Saving order");
@@ -106,8 +114,17 @@ public class OrderService {
     public void updateOrderStatus(String orderId, Order.OrderStatus status) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-        
+
+        if (order.getStatusHistory() == null) {
+            order.setStatusHistory(new ArrayList<>());
+        }
+        order.getStatusHistory().add(StatusHistory.builder()
+                .status(status)
+                .changedAt(LocalDateTime.now())
+                .build());
+
         order.setStatus(status);
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepo.save(order);
     }
 
@@ -235,7 +252,7 @@ public class OrderService {
             .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
         
         // 2. Validate seller owns products in the order
-        if (!isSellerOrderOwner(order, sellerId)) {
+        if (!isSellerOrderOwner(order)) {
             throw new UnauthorizedOrderAccessException(
                 "You are not authorized to update this order. You don't own any products in this order."
             );
@@ -250,6 +267,15 @@ public class OrderService {
         
         // 4. Update status
         Order.OrderStatus oldStatus = order.getStatus();
+
+        if (order.getStatusHistory() == null) {
+            order.setStatusHistory(new ArrayList<>());
+        }
+        order.getStatusHistory().add(StatusHistory.builder()
+                .status(newStatus)
+                .changedAt(LocalDateTime.now())
+                .build());
+
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
         orderRepo.save(order);
@@ -287,7 +313,7 @@ public class OrderService {
         if ("CLIENT".equals(userRole)) {
             isAuthorized = order.getBuyerId().equals(userId);
         } else if ("SELLER".equals(userRole)) {
-            isAuthorized = isSellerOrderOwner(order, userId);
+            isAuthorized = isSellerOrderOwner(order);
         }
         
         if (!isAuthorized) {
@@ -308,6 +334,15 @@ public class OrderService {
         
         // 4. Update status to CANCELLED
         Order.OrderStatus oldStatus = order.getStatus();
+
+        if (order.getStatusHistory() == null) {
+            order.setStatusHistory(new ArrayList<>());
+        }
+        order.getStatusHistory().add(StatusHistory.builder()
+                .status(Order.OrderStatus.CANCELLED)
+                .changedAt(LocalDateTime.now())
+                .build());
+
         order.setStatus(Order.OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         orderRepo.save(order);
@@ -333,10 +368,9 @@ public class OrderService {
      * Validate if seller owns any products in the order
      * 
      * @param order The order to check
-     * @param sellerId The seller's user ID
      * @return true if seller owns at least one product in the order
      */
-    private boolean isSellerOrderOwner(Order order, String sellerId) {
+    private boolean isSellerOrderOwner(Order order) {
         // Get seller's product IDs via Feign client
         List<String> sellerProductIds;
         try {
