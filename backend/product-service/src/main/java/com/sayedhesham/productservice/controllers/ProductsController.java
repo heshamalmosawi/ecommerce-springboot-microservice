@@ -179,4 +179,25 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    /**
+     * Get products by list of IDs
+     * Used by order-service for reorder functionality
+     *
+     * @param ids List of product IDs
+     * @return List of product response DTOs
+     */
+    @GetMapping("/batch")
+    public ResponseEntity<Object> getProductsBatch(@RequestParam List<String> ids) {
+        System.out.println("[ProductsController] /batch endpoint called with " + ids.size() + " IDs");
+        
+        try {
+            List<ProductResponseDTO> products = prodService.getProductsByIds(ids);
+            System.out.println("[ProductsController] Successfully retrieved " + products.size() + " products");
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            System.err.println("[ProductsController] Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
 }

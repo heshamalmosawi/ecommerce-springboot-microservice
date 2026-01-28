@@ -2,6 +2,7 @@ package com.sayedhesham.productservice.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -362,5 +363,22 @@ public class ProductService {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    /**
+     * Get products by list of IDs
+     *
+     * @param ids List of product IDs
+     * @return List of product response DTOs
+     */
+    public List<ProductResponseDTO> getProductsByIds(List<String> ids) {
+        System.out.println("[ProductService] getProductsByIds called with " + ids.size() + " IDs");
+        
+        List<Product> products = prodRepo.findAllById(ids);
+        System.out.println("[ProductService] Found " + products.size() + " products");
+        
+        return products.stream()
+                .map(this::convertToProductResponseDTO)
+                .collect(Collectors.toList());
     }
 }
