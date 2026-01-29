@@ -42,6 +42,17 @@
     }
   }
 
+  &.btn-reorder {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+
+    &:hover {
+      background: #059669;
+      border-color: #059669;
+    }
+  }
+
   &.btn-cancel {
     background: white;
     color: #dc2626;

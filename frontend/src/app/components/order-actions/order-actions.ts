@@ -13,6 +13,7 @@ export class OrderActions {
   @Input() userRole: 'client' | 'seller' = 'client';
   @Output() updateStatusClick = new EventEmitter<void>();
   @Output() cancelClick = new EventEmitter<void>();
+  @Output() reorderClick = new EventEmitter<void>();
 
   get canCancel(): boolean {
     return ['PENDING', 'PROCESSING'].includes(this.currentStatus);
@@ -25,8 +26,12 @@ export class OrderActions {
     return ['PENDING', 'PROCESSING', 'SHIPPED'].includes(this.currentStatus);
   }
 
+  get canReorder(): boolean {
+    return ['DELIVERED'].includes(this.currentStatus);
+  }
+
   get showActions(): boolean {
-    return this.canCancel || this.canUpdateStatus;
+    return this.canCancel || this.canUpdateStatus || this.canReorder;
   }
 
   onUpdateStatus(): void {
@@ -35,5 +40,9 @@ export class OrderActions {
 
   onCancelOrder(): void {
     this.cancelClick.emit();
+  }
+
+  onReorder(): void {
+    this.reorderClick.emit();
   }
 }

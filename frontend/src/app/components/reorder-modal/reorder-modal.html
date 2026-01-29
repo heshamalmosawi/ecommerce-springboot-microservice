@@ -1,0 +1,131 @@
+@if (visible) {
+<div class="modal-overlay" (click)="close()">
+  <div class="reorder-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Reorder Items</h2>
+      <button class="close-btn" (click)="close()" aria-label="Close modal">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-content">
+      @if (loading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Checking item availability...</p>
+      </div>
+      }
+
+      @if (error) {
+      <div class="error-container">
+        <p class="error-message">{{ error }}</p>
+        <button class="retry-btn" (click)="retry()">Retry</button>
+      </div>
+      }
+
+      @if (reorderData && !loading) {
+      @if (reorderData.warnings.length > 0) {
+      <div class="warnings-section">
+        <div class="warnings-card">
+          <h3 class="warnings-title">
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            Please Note
+          </h3>
+          <ul class="warnings-list">
+            @for (warning of reorderData.warnings; track $index) {
+            <li>{{ warning }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+      }
+
+      @if (reorderData.availableItems.length > 0) {
+      <div class="available-section">
+        <h3 class="section-title">
+          Available for Reorder ({{ reorderData.availableItems.length }})
+        </h3>
+
+        <div class="items-list">
+          @for (item of reorderData.availableItems; track item.productId) {
+          <div class="item-card">
+            @if (item.imageUrl) {
+            <img [src]="item.imageUrl" alt="{{ item.productName }}" class="item-image">
+            }
+            <div class="item-info">
+              <h4 class="item-name">{{ item.productName }}</h4>
+              <p class="item-quantity">Quantity: {{ item.requestedQuantity }}</p>
+              <p class="item-price">
+                @if (hasPriceChanged(item)) {
+                <span class="price-changed">
+                  Was: ${{ item.originalPrice.toFixed(2) }} → Now: ${{ item.currentPrice.toFixed(2) }}
+                </span>
+                }
+                @if (!hasPriceChanged(item)) {
+                <span>${{ item.currentPrice.toFixed(2) }}</span>
+                }
+              </p>
+              @if (hasLimitedStock(item)) {
+              <div class="limited-stock">
+                <svg class="stock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Limited Stock: Only {{ item.availableQuantity }} available
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (reorderData.unavailableItems.length > 0) {
+      <div class="unavailable-section">
+        <h3 class="section-title">
+          Unavailable ({{ reorderData.unavailableItems.length }})
+        </h3>
+
+        <div class="items-list">
+          @for (item of reorderData.unavailableItems; track item.productId) {
+          <div class="item-card unavailable">
+            <div class="item-info">
+              <h4 class="item-name">{{ item.productName }}</h4>
+              <p class="item-quantity">Requested: {{ item.requestedQuantity }}</p>
+              <p class="unavailable-reason">{{ item.reason }}</p>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (reorderData.availableItems.length === 0 && reorderData.unavailableItems.length === 0) {
+      <div class="empty-state">
+        <p>No items found in this order.</p>
+      </div>
+      }
+      }
+    </div>
+
+    <div class="modal-actions">
+      <button class="action-btn secondary" (click)="close()">Cancel</button>
+      <button
+        class="action-btn primary"
+        (click)="addToCart()"
+        [disabled]="!reorderData || reorderData.availableItems.length === 0 || addingToCart">
+        @if (addingToCart) {
+        <span>Adding...</span>
+        }
+        @if (!addingToCart) {
+        <span>Add Available Items to Cart</span>
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
