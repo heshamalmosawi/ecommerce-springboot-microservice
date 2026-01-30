@@ -28,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
+import com.sayedhesham.productservice.model.Category;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
@@ -146,6 +147,7 @@ class ProductServiceTest {
                 .description("New Description")
                 .price(50.0)
                 .quantity(5)
+                .category(Category.ELECTRONICS)
                 .images(new ArrayList<>())
                 .build();
 
