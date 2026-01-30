@@ -18,11 +18,13 @@ public class AuthService {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
     private final AvatarEventService avatarEventService;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder, AvatarEventService avatarEventService) {
+    public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder, AvatarEventService avatarEventService, JwtService jwtService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.avatarEventService = avatarEventService;
+        this.jwtService = jwtService;
     }
 
     public boolean isEmailTaken(String email) {
@@ -84,7 +86,7 @@ public class AuthService {
             throw new RuntimeException("Invalid email or password");
         }
         return LoginResponse.builder()
-                .token(JwtService.generateToken(user))
+                .token(jwtService.generateToken(user))
                 .expiresAt(System.currentTimeMillis() + TOKEN_EXPIRATION_MS)
                 .name(user.getName())
                 .build();
