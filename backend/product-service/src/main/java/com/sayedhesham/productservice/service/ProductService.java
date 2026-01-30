@@ -21,6 +21,9 @@ import com.sayedhesham.productservice.model.User;
 import com.sayedhesham.productservice.repository.ProductRepository;
 import com.sayedhesham.productservice.repository.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class ProductService {
 
@@ -352,24 +355,23 @@ public class ProductService {
      * @return List of product IDs
      */
     public List<String> getMyProductIds() {
-        System.out.println("[ProductService] getMyProductIds called");
+        log.debug("getMyProductIds called");
         
         try {
             String currentUserId = getCurrentUserId();
-            System.out.println("[ProductService] Current user ID: " + currentUserId);
+            log.debug("Current user ID: {}", currentUserId);
             
             List<Product> products = prodRepo.findProductIdsByUserId(currentUserId);
-            System.out.println("[ProductService] Found " + products.size() + " products for user");
+            log.debug("Found {} products for user", products.size());
             
             List<String> productIds = products.stream()
                     .map(Product::getId)
                     .toList();
             
-            System.out.println("[ProductService] Returning product IDs: " + productIds);
+            log.debug("Returning product IDs: {}", productIds);
             return productIds;
         } catch (Exception e) {
-            System.err.println("[ProductService] Error in getMyProductIds: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error in getMyProductIds: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -381,10 +383,10 @@ public class ProductService {
      * @return List of product response DTOs
      */
     public List<ProductResponseDTO> getProductsByIds(List<String> ids) {
-        System.out.println("[ProductService] getProductsByIds called with " + ids.size() + " IDs");
+        log.debug("getProductsByIds called with {} IDs", ids.size());
         
         List<Product> products = prodRepo.findAllById(ids);
-        System.out.println("[ProductService] Found " + products.size() + " products");
+        log.debug("Found {} products", products.size());
         
         return products.stream()
                 .map(this::convertToProductResponseDTO)

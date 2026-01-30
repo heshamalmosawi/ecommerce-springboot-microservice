@@ -1,6 +1,5 @@
 package com.sayedhesham.productservice.controllers;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,9 @@ import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/")
 public class ProductsController {
@@ -117,11 +118,11 @@ public class ProductsController {
             Product createdProduct = prodService.create(createProductDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
         } catch (Exception e) {
-            System.out.println("Error creating product: " + e.getMessage());
+            log.error("Error creating product: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
-    
+
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateProductWithImages(@PathVariable String id, @Valid @RequestBody ProductUpdateWithImagesDTO product) {
         try {
@@ -159,68 +160,66 @@ public class ProductsController {
     }
 
     /**
-     * Get product IDs for the current seller (authenticated user)
-     * Used by order-service for seller analytics
-     * Requires SELLER role
+     * Get product IDs for the current seller (authenticated user) Used by
+     * order-service for seller analytics Requires SELLER role
      */
     @GetMapping("/seller/ids")
     public ResponseEntity<Object> getMyProductIds() {
-        System.out.println("[ProductsController] /seller/ids endpoint called");
-        
+        log.info("/seller/ids endpoint called");
+
         try {
-            System.out.println("[ProductsController] Calling ProductService.getMyProductIds");
+            log.debug("Calling ProductService.getMyProductIds");
             List<String> productIds = prodService.getMyProductIds();
-            System.out.println("[ProductsController] Successfully retrieved " + productIds.size() + " product IDs");
+            log.info("Successfully retrieved {} product IDs", productIds.size());
             return ResponseEntity.ok(productIds);
         } catch (IllegalArgumentException e) {
-            System.err.println("[ProductsController] Unauthorized error: " + e.getMessage());
+            log.error("Unauthorized error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ERROR_PREFIX + e.getMessage());
         } catch (Exception e) {
-            System.err.println("[ProductsController] Internal server error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Internal server error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
     /**
-     * Get products by list of IDs
-     * Used by order-service for reorder functionality
+     * Get products by list of IDs Used by order-service for reorder
+     * functionality
      *
      * @param ids List of product IDs
      * @return List of product response DTOs
      */
     @GetMapping("/batch")
     public ResponseEntity<Object> getProductsBatch(@RequestParam List<String> ids) {
-        System.out.println("[ProductsController] /batch endpoint called with " + (ids != null ? ids.size() : 0) + " IDs");
-        
+        log.info("/batch endpoint called with {} IDs", (ids != null ? ids.size() : 0));
+
         // Validate input
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ERROR_PREFIX + "Product IDs list cannot be null or empty");
+                    .body(ERROR_PREFIX + "Product IDs list cannot be null or empty");
         }
-        
+
         // Limit batch size to prevent DoS attacks
         final int MAX_BATCH_SIZE = 100;
         if (ids.size() > MAX_BATCH_SIZE) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ERROR_PREFIX + "Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
+                    .body(ERROR_PREFIX + "Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
         }
-        
+
         // Validate individual IDs
         List<String> invalidIds = ids.stream()
-            .filter(id -> id == null || id.trim().isEmpty())
-            .toList();
+                .filter(id -> id == null || id.trim().isEmpty())
+                .toList();
         if (!invalidIds.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ERROR_PREFIX + "Product IDs cannot be null or empty strings");
+                    .body(ERROR_PREFIX + "Product IDs cannot be null or empty strings");
         }
-        
+
         try {
             List<ProductResponseDTO> products = prodService.getProductsByIds(ids);
-            System.out.println("[ProductsController] Successfully retrieved " + products.size() + " products");
+            log.info("Successfully retrieved {} products", products.size());
             return ResponseEntity.ok(products);
         } catch (Exception e) {
-            System.err.println("[ProductsController] Error: " + e.getMessage());
+            log.error("Error retrieving products batch: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
