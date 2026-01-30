@@ -24,6 +24,8 @@ import com.sayedhesham.productservice.repository.UserRepository;
 @Service
 public class ProductService {
 
+    private static final String PRODUCT_NOT_FOUND = "Product not found";
+
     private final ProductRepository prodRepo;
     private final UserRepository userRepo;
     private final ProductImageEventService productImageEventService;
@@ -82,12 +84,12 @@ public class ProductService {
 
     public Product getById(String id) {
         return prodRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException(PRODUCT_NOT_FOUND));
     }
 
     public ProductResponseDTO getByIdWithSellerName(String id) {
         Product product = prodRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException(PRODUCT_NOT_FOUND));
 
         User seller = userRepo.findById(product.getUserId())
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
@@ -157,7 +159,7 @@ public class ProductService {
 
     public Product replaceProduct(String id, ProductDTO productDTO) {
         Product existingProduct = prodRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_FOUND));
         String currentUserId = getCurrentUserId();
         if (!existingProduct.getUserId().equals(currentUserId)) {
             throw new IllegalArgumentException("You can only modify your own products");
@@ -195,7 +197,7 @@ public class ProductService {
 
     public Product update(String id, ProductDTO productDTO) {
         Product existingProduct = prodRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_FOUND));
         String currentUserId = getCurrentUserId();
         if (!existingProduct.getUserId().equals(currentUserId)) {
             throw new IllegalArgumentException("You can only modify your own products");
@@ -225,7 +227,7 @@ public class ProductService {
 
     public void delete(String id) {
         Product existingProduct = prodRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_FOUND));
         String currentUserId = getCurrentUserId();
         if (!existingProduct.getUserId().equals(currentUserId)) {
             throw new IllegalArgumentException("You can only delete your own products");
@@ -235,17 +237,27 @@ public class ProductService {
 
     public Product updateProductWithImages(String id, ProductUpdateWithImagesDTO productDTO) {
         Product existingProduct = prodRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_FOUND));
+        
+        validateProductOwnership(existingProduct);
+        validateProductFields(productDTO);
+        updateProductFields(existingProduct, productDTO);
+        handleImageUpdates(id, existingProduct, productDTO);
+
+        return prodRepo.save(existingProduct);
+    }
+
+    private void validateProductOwnership(Product product) {
         String currentUserId = getCurrentUserId();
-        if (!existingProduct.getUserId().equals(currentUserId)) {
+        if (!product.getUserId().equals(currentUserId)) {
             throw new IllegalArgumentException("You can only modify your own products");
         }
-
         if (!userRepo.existsById(currentUserId)) {
             throw new IllegalArgumentException("User does not exist");
         }
+    }
 
-        // Validate basic product fields
+    private void validateProductFields(ProductUpdateWithImagesDTO productDTO) {
         if (productDTO.getName() == null || productDTO.getName().isEmpty()) {
             throw new IllegalArgumentException("Product name is required");
         }
@@ -261,58 +273,55 @@ public class ProductService {
         if (productDTO.getCategory() == null) {
             throw new IllegalArgumentException("Product category is required");
         }
+    }
 
-        // Update basic product fields
-        existingProduct.setName(productDTO.getName());
-        existingProduct.setDescription(productDTO.getDescription());
-        existingProduct.setPrice(productDTO.getPrice());
-        existingProduct.setQuantity(productDTO.getQuantity());
-        existingProduct.setCategory(productDTO.getCategory());
+    private void updateProductFields(Product product, ProductUpdateWithImagesDTO productDTO) {
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setQuantity(productDTO.getQuantity());
+        product.setCategory(productDTO.getCategory());
+    }
 
-        // Handle image operations
-        List<String> currentImageIds = existingProduct.getImageMediaIds();
-        List<String> retainedIds = productDTO.getRetainedImageIds();
+    private void handleImageUpdates(String productId, Product product, ProductUpdateWithImagesDTO productDTO) {
+        List<String> currentImageIds = product.getImageMediaIds() != null 
+                ? product.getImageMediaIds() : new ArrayList<>();
+        List<String> retainedIds = productDTO.getRetainedImageIds() != null 
+                ? productDTO.getRetainedImageIds() : new ArrayList<>();
 
-        // Initialize lists if null
-        if (currentImageIds == null) {
-            currentImageIds = new ArrayList<>();
-        }
-        if (retainedIds == null) {
-            retainedIds = new ArrayList<>();
-        }
+        validateRetainedImageIds(currentImageIds, retainedIds);
+        publishImageDeleteEvents(productId, currentImageIds, retainedIds);
+        publishImageUploadEvents(productId, productDTO.getImages());
+        
+        product.setImageMediaIds(new ArrayList<>(retainedIds));
+    }
 
-        // Validate that all retained image IDs belong to the current product
+    private void validateRetainedImageIds(List<String> currentImageIds, List<String> retainedIds) {
         for (String retainedId : retainedIds) {
             if (!currentImageIds.contains(retainedId)) {
                 throw new IllegalArgumentException("Image ID " + retainedId + " does not belong to this product");
             }
         }
+    }
 
-        // Find images to remove (current images not in retained list)
-        final List<String> finalRetainedIds = retainedIds;
+    private void publishImageDeleteEvents(String productId, List<String> currentImageIds, List<String> retainedIds) {
         List<String> imagesToRemove = currentImageIds.stream()
-                .filter(imageId -> !finalRetainedIds.contains(imageId))
+                .filter(imageId -> !retainedIds.contains(imageId))
                 .toList();
 
-        // Publish delete events for removed images
         for (String imageId : imagesToRemove) {
-            productImageEventService.publishProductImageDeleteEvent(id, imageId);
+            productImageEventService.publishProductImageDeleteEvent(productId, imageId);
         }
+    }
 
-        // Publish upload events for new images
-        if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
-            for (String imageBase64 : productDTO.getImages()) {
-                String contentType = extractContentType(imageBase64);
-                productImageEventService.publishProductImageUploadEvent(
-                        id, imageBase64, contentType);
-            }
+    private void publishImageUploadEvents(String productId, List<String> images) {
+        if (images == null || images.isEmpty()) {
+            return;
         }
-
-        // Update product's image list with retained images
-        // Note: New images will be added asynchronously via Kafka events
-        existingProduct.setImageMediaIds(new ArrayList<>(retainedIds));
-
-        return prodRepo.save(existingProduct);
+        for (String imageBase64 : images) {
+            String contentType = extractContentType(imageBase64);
+            productImageEventService.publishProductImageUploadEvent(productId, imageBase64, contentType);
+        }
     }
 
     private String extractContentType(String imageBase64) {

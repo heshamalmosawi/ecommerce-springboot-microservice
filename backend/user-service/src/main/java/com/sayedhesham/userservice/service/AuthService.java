@@ -14,6 +14,9 @@ import com.sayedhesham.userservice.service.security.JwtService;
 public class AuthService {
 
     private static final long TOKEN_EXPIRATION_MS = 1000L * 60 * 60 * 24 * 3; // 3 days in milliseconds
+    private static final String ROLE_SELLER = "seller";
+    private static final String ROLE_CLIENT = "client";
+    private static final int MIN_PASSWORD_LENGTH = 6;
 
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
@@ -32,6 +35,24 @@ public class AuthService {
     }
 
     public void registerUser(RegisterRequest req) {
+        validateRegistrationRequest(req);
+        validateEmailNotTaken(req.getEmail());
+        validateRole(req.getRole());
+        validateAvatarPermission(req.getRole(), req.getAvatar_b64());
+
+        User user = User.builder()
+                .name(req.getName())
+                .email(req.getEmail())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .role(req.getRole())
+                .build();
+
+        User savedUser = this.userRepo.save(user);
+
+        publishAvatarIfSeller(savedUser.getId(), req.getRole(), req.getAvatar_b64());
+    }
+
+    private void validateRegistrationRequest(RegisterRequest req) {
         if (req.getName() == null || req.getName().isEmpty()) {
             throw new RuntimeException("Name is required");
         }
@@ -47,35 +68,35 @@ public class AuthService {
         if (!req.getEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$")) {
             throw new RuntimeException("Invalid email format");
         }
-        if (req.getPassword().length() < 6) {
+        if (req.getPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new RuntimeException("Password must be at least 6 characters long");
         }
+    }
 
-        if (userRepo.findByEmail(req.getEmail()).isPresent()) {
+    private void validateEmailNotTaken(String email) {
+        if (userRepo.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already in use");
         }
+    }
 
-        if (req.getRole() == null || (!req.getRole().equals("client") && !req.getRole().equals("seller"))) {
+    private void validateRole(String role) {
+        if (role == null || (!role.equals(ROLE_CLIENT) && !role.equals(ROLE_SELLER))) {
             throw new RuntimeException("Invalid role. Must be 'client' or 'sellers'");
         }
+    }
 
-        if (!req.getRole().equals("seller") && (req.getAvatar_b64() != null && !req.getAvatar_b64().isEmpty())) {
+    private void validateAvatarPermission(String role, String avatarB64) {
+        boolean hasAvatar = avatarB64 != null && !avatarB64.isEmpty();
+        if (!role.equals(ROLE_SELLER) && hasAvatar) {
             throw new RuntimeException("Only sellers can have an avatar");
         }
+    }
 
-        User user = User.builder()
-                .name(req.getName())
-                .email(req.getEmail())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .role(req.getRole())
-                .build();
-
-        User savedUser = this.userRepo.save(user);
-
-        // Publish avatar upload event if seller has avatar
-        if (req.getRole().equals("seller") && req.getAvatar_b64() != null && !req.getAvatar_b64().isEmpty()) {
+    private void publishAvatarIfSeller(String userId, String role, String avatarB64) {
+        boolean hasAvatar = avatarB64 != null && !avatarB64.isEmpty();
+        if (role.equals(ROLE_SELLER) && hasAvatar) {
             String contentType = "image/jpeg"; // Default, could be detected from base64
-            avatarEventService.publishAvatarUploadEvent(savedUser.getId(), req.getAvatar_b64(), contentType);
+            avatarEventService.publishAvatarUploadEvent(userId, avatarB64, contentType);
         }
     }
 

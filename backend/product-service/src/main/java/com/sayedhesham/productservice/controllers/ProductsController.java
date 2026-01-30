@@ -35,6 +35,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/")
 public class ProductsController {
 
+    private static final String ERROR_PREFIX = "Error: ";
+
     @Autowired
     private ProductService prodService;
 
@@ -50,7 +52,7 @@ public class ProductsController {
             Page<ProductResponseDTO> productPage = prodService.getAll(pageable);
             return ResponseEntity.ok(productPage);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -92,7 +94,7 @@ public class ProductsController {
             var result = prodService.searchProducts(searchRequest, pageable);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -102,9 +104,9 @@ public class ProductsController {
             ProductResponseDTO product = prodService.getByIdWithSellerName(id);
             return ResponseEntity.ok(product);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
 
         }
     }
@@ -116,7 +118,7 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
         } catch (Exception e) {
             System.out.println("Error creating product: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
     
@@ -126,9 +128,9 @@ public class ProductsController {
             Product updatedProduct = prodService.updateProductWithImages(id, product);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -138,9 +140,9 @@ public class ProductsController {
             Product updatedProduct = prodService.update(id, product);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -150,9 +152,9 @@ public class ProductsController {
             prodService.delete(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -172,11 +174,11 @@ public class ProductsController {
             return ResponseEntity.ok(productIds);
         } catch (IllegalArgumentException e) {
             System.err.println("[ProductsController] Unauthorized error: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ERROR_PREFIX + e.getMessage());
         } catch (Exception e) {
             System.err.println("[ProductsController] Internal server error: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -194,14 +196,14 @@ public class ProductsController {
         // Validate input
         if (ids == null || ids.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Error: Product IDs list cannot be null or empty");
+                .body(ERROR_PREFIX + "Product IDs list cannot be null or empty");
         }
         
         // Limit batch size to prevent DoS attacks
         final int MAX_BATCH_SIZE = 100;
         if (ids.size() > MAX_BATCH_SIZE) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Error: Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
+                .body(ERROR_PREFIX + "Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
         }
         
         // Validate individual IDs
@@ -210,7 +212,7 @@ public class ProductsController {
             .toList();
         if (!invalidIds.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Error: Product IDs cannot be null or empty strings");
+                .body(ERROR_PREFIX + "Product IDs cannot be null or empty strings");
         }
         
         try {
@@ -219,7 +221,7 @@ public class ProductsController {
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             System.err.println("[ProductsController] Error: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 }
