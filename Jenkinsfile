@@ -40,7 +40,7 @@ pipeline {
         stage('Backend build & test') {
             steps {
                 dir('backend') {
-                    sh './mvnw -B -q clean install -T 2C'
+                    sh './mvnw -B -q clean verify -T 2C'
                     echo "Backend build and tests completed successfully"
                 }
             }
@@ -66,7 +66,8 @@ pipeline {
                            "-Dsonar.projectName='esouq' " +
                            "-Dsonar.sources=src/main/java " +
                            "-Dsonar.tests=src/test/java " +
-                           "-Dsonar.java.binaries=target " +
+                           "-Dsonar.java.binaries=target/classes " +
+                           "-Dsonar.coverage.jacoco.xmlReportPaths=*/target/site/jacoco/jacoco.xml " +
                            "-Dsonar.token=${SONAR_TOKEN}"
                     }
                     dir('frontend') {
