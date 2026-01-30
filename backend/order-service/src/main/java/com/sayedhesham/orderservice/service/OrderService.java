@@ -489,6 +489,10 @@ public class OrderService {
                 .requestedQuantity(requestedQuantity)
                 .originalPrice(orderItem.getPrice())
                 .currentPrice(currentProduct.getPrice());
+
+            if (currentProduct.getImageMediaIds() != null && !currentProduct.getImageMediaIds().isEmpty()) {
+                itemBuilder.imageUrl("/media/" + currentProduct.getImageMediaIds().get(0));
+            }
             
             if (availableQuantity < requestedQuantity) {
                 itemBuilder.availableQuantity(availableQuantity);
