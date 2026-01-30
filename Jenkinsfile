@@ -88,22 +88,14 @@ pipeline {
             steps {
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
-                        try {
-                            // Try the standard way first
-                            def qg = waitForQualityGate()
-                            if (qg.status != 'OK') {
-                                error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                            }
-                            echo "Quality Gate status: ${qg.status}"
-                        } catch (Exception e) {
-                            // Fallback: Since SonarQube analysis was successful, assume Quality Gate passes
-                            echo "Standard Quality Gate check failed with error: ${e.getMessage()}"
-                            echo "SonarQube analysis completed successfully in both backend and frontend."
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            echo "Quality Gate failed with status: ${qg.status}"
                             echo "Analysis results available at: http://localhost:9000/dashboard?id=esouq"
                             echo "Analysis results available at: http://localhost:9000/dashboard?id=ecommerce-frontend"
-                            echo "Assuming Quality Gate status: OK"
-                            echo "QUALITY_GATE_STATUS=OK"
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
                         }
+                        echo "Quality Gate passed with status: ${qg.status}"
                     }
                 }
             }

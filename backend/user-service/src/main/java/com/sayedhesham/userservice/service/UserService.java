@@ -13,6 +13,8 @@ import com.sayedhesham.userservice.repository.UserRepository;
 @Service
 public class UserService {
 
+    private static final String USER_NOT_FOUND = "User not found";
+
     private final UserRepository userRepo;
 
     @Autowired
@@ -35,7 +37,7 @@ public class UserService {
 
     public UserDTO getById(String id) {
         User user = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         return UserDTO.builder()
                 .name(user.getName())
@@ -47,7 +49,7 @@ public class UserService {
 
     public UserDTO update(String id, UserPatchDTO user) {
         User existingUser = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
 
         updateBasicFields(existingUser, user);
         updateRole(existingUser, user.getRole());
@@ -124,7 +126,7 @@ public class UserService {
 
     public void delete(String id) {
         User existingUser = userRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
         userRepo.delete(existingUser);
     }
 }
