@@ -173,7 +173,7 @@ pipeline {
         failure {
             echo "Build #${env.BUILD_NUMBER} failed."
             emailext(
-                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                to: 'hishamalmosawii@gmail.com',
                 subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 mimeType: 'text/html',
                 body: """
@@ -200,7 +200,7 @@ pipeline {
                 }
             }
             emailext(
-                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                to: 'hishamalmosawii@gmail.com',
                 subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 mimeType: 'text/html',
                 body: """
