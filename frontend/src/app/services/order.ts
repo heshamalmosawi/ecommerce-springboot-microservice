@@ -137,6 +137,31 @@ export interface SellerAnalyticsSummary {
   topRevenueProducts: SellerProductAnalytics[];
 }
 
+export interface ReorderResponse {
+  availableItems: ReorderItem[];
+  unavailableItems: UnavailableItem[];
+  warnings: string[];
+  originalOrderId: string;
+  fetchedAt: string;
+}
+
+export interface ReorderItem {
+  productId: string;
+  productName: string;
+  requestedQuantity: number;
+  availableQuantity: number;
+  originalPrice: number;
+  currentPrice: number;
+  imageUrl?: string;
+}
+
+export interface UnavailableItem {
+  productId: string;
+  productName: string;
+  requestedQuantity: number;
+  reason: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -400,6 +425,29 @@ export class OrderService {
         let errorMessage = 'Failed to fetch seller orders';
 
         if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        return throwError(() => new Error(errorMessage));
+      })
+    );
+  }
+
+  getItemsForReorder(orderId: string): Observable<ReorderResponse> {
+    return this.http.get<ReorderResponse>(`${this.API_URL}/orders/${orderId}/reorder`).pipe(
+      map(response => {
+        console.log('Reorder items fetched successfully:', response);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error fetching reorder items:', error);
+        let errorMessage = 'Failed to fetch reorder items';
+
+        if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        } else if (error.error && error.error.message) {
           errorMessage = error.error.message;
         } else if (error.message) {
           errorMessage = error.message;

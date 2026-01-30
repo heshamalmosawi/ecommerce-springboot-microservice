@@ -179,7 +179,8 @@
         @if (isOrderExpanded(order.id)) {
         <app-order-actions [orderId]="order.id" [currentStatus]="order.status" [userRole]="userRole"
           (cancelClick)="onCancelOrderClick(order.id)"
-          (updateStatusClick)="onUpdateStatusClick(order.id, order.status)"></app-order-actions>
+          (updateStatusClick)="onUpdateStatusClick(order.id, order.status)"
+          (reorderClick)="onReorderClick(order.id)"></app-order-actions>
         }
       </div>
       }
@@ -192,6 +193,8 @@
 
   <app-order-status-modal (confirm)="onUpdateStatusConfirm($event)"
     (cancel)="statusModal.hide()"></app-order-status-modal>
+
+  <app-reorder-modal></app-reorder-modal>
   }
 
   @if (!loading && !error && orders.length > 0) {

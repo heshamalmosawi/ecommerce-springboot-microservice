@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,10 @@ import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.OrderItemDTO;
 import com.sayedhesham.orderservice.dto.OrderStatusResponseDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
+import com.sayedhesham.orderservice.dto.ReorderItemDTO;
+import com.sayedhesham.orderservice.dto.ReorderResponseDTO;
 import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
+import com.sayedhesham.orderservice.dto.UnavailableItemDTO;
 import com.sayedhesham.orderservice.exceptions.InvalidStatusTransitionException;
 import com.sayedhesham.orderservice.exceptions.OrderCannotBeCancelledException;
 import com.sayedhesham.orderservice.exceptions.ServiceCommunicationException;
@@ -409,4 +413,113 @@ public class OrderService {
     @Autowired
     @Lazy
     private OrderSagaOrchestrator orderSagaOrchestrator;
+
+    public ReorderResponseDTO getItemsForReorder(String orderId) {
+        log.info("Processing reorder request for order: {}", orderId);
+        
+        Order order = orderRepo.findById(orderId)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Order not found: " + orderId));
+        
+        String currentUserId = Utils.getCurrentUserId();
+        if (!order.getBuyerId().equals(currentUserId)) {
+            log.warn("User {} attempted to reorder order {} owned by {}", 
+                currentUserId, orderId, order.getBuyerId());
+            throw new UnauthorizedOrderAccessException(
+                "You are not authorized to reorder this order.");
+        }
+        
+        if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+            log.warn("Order {} has no items, cannot reorder", orderId);
+            throw new IllegalArgumentException(
+                "Cannot reorder an order with no items.");
+        }
+        
+        List<String> productIds = order.getOrderItems().stream()
+            .map(OrderItem::getProductId)
+            .collect(Collectors.toList());
+        
+        List<Product> currentProducts;
+        try {
+            currentProducts = productClient.getProductsByIds(productIds);
+            log.info("Fetched {} current product records", currentProducts.size());
+        } catch (Exception e) {
+            log.error("Failed to fetch product data: {}", e.getMessage());
+            throw new ServiceCommunicationException(
+                "Unable to verify product availability. Please try again later.");
+        }
+        
+        Map<String, Product> productMap = currentProducts.stream()
+            .collect(Collectors.toMap(Product::getId, p -> p));
+        
+        List<ReorderItemDTO> availableItems = new ArrayList<>();
+        List<UnavailableItemDTO> unavailableItems = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product currentProduct = productMap.get(orderItem.getProductId());
+            
+            if (currentProduct == null) {
+                unavailableItems.add(UnavailableItemDTO.builder()
+                    .productId(orderItem.getProductId())
+                    .productName(orderItem.getProductName())
+                    .requestedQuantity(orderItem.getQuantity())
+                    .reason("Product discontinued")
+                    .build());
+                continue;
+            }
+            
+            if (currentProduct.getQuantity() == null || 
+                currentProduct.getQuantity() <= 0) {
+                unavailableItems.add(UnavailableItemDTO.builder()
+                    .productId(orderItem.getProductId())
+                    .productName(orderItem.getProductName())
+                    .requestedQuantity(orderItem.getQuantity())
+                    .reason("Out of stock")
+                    .build());
+                continue;
+            }
+            
+            Integer availableQuantity = currentProduct.getQuantity();
+            Integer requestedQuantity = orderItem.getQuantity();
+            
+            var itemBuilder = ReorderItemDTO.builder()
+                .productId(orderItem.getProductId())
+                .productName(orderItem.getProductName())
+                .requestedQuantity(requestedQuantity)
+                .originalPrice(orderItem.getPrice())
+                .currentPrice(currentProduct.getPrice());
+
+            if (currentProduct.getImageMediaIds() != null && !currentProduct.getImageMediaIds().isEmpty()) {
+                itemBuilder.imageUrl("/media/" + currentProduct.getImageMediaIds().get(0));
+            }
+            
+            if (availableQuantity < requestedQuantity) {
+                itemBuilder.availableQuantity(availableQuantity);
+                warnings.add(String.format(
+                    "Only %d of %d '%s' available - will add %d to cart",
+                    availableQuantity, requestedQuantity, orderItem.getProductName(), availableQuantity));
+            } else {
+                itemBuilder.availableQuantity(requestedQuantity);
+            }
+            
+            if (!java.util.Objects.equals(currentProduct.getPrice(), orderItem.getPrice())) {
+                warnings.add(String.format(
+                    "Price changed for '%s': %.2f → %.2f",
+                    orderItem.getProductName(),
+                    orderItem.getPrice(),
+                    currentProduct.getPrice()));
+            }
+            
+            availableItems.add(itemBuilder.build());
+        }
+        
+        return ReorderResponseDTO.builder()
+            .availableItems(availableItems)
+            .unavailableItems(unavailableItems)
+            .warnings(warnings)
+            .originalOrderId(orderId)
+            .fetchedAt(LocalDateTime.now().toString())
+            .build();
+    }
 }

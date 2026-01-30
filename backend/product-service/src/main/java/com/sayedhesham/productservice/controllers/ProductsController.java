@@ -179,4 +179,47 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    /**
+     * Get products by list of IDs
+     * Used by order-service for reorder functionality
+     *
+     * @param ids List of product IDs
+     * @return List of product response DTOs
+     */
+    @GetMapping("/batch")
+    public ResponseEntity<Object> getProductsBatch(@RequestParam List<String> ids) {
+        System.out.println("[ProductsController] /batch endpoint called with " + (ids != null ? ids.size() : 0) + " IDs");
+        
+        // Validate input
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Product IDs list cannot be null or empty");
+        }
+        
+        // Limit batch size to prevent DoS attacks
+        final int MAX_BATCH_SIZE = 100;
+        if (ids.size() > MAX_BATCH_SIZE) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
+        }
+        
+        // Validate individual IDs
+        List<String> invalidIds = ids.stream()
+            .filter(id -> id == null || id.trim().isEmpty())
+            .toList();
+        if (!invalidIds.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Product IDs cannot be null or empty strings");
+        }
+        
+        try {
+            List<ProductResponseDTO> products = prodService.getProductsByIds(ids);
+            System.out.println("[ProductsController] Successfully retrieved " + products.size() + " products");
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            System.err.println("[ProductsController] Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+        }
+    }
 }

@@ -6,17 +6,19 @@ import { OrderCancelModal } from '../order-cancel-modal/order-cancel-modal';
 import { OrderStatusModal } from '../order-status-modal/order-status-modal';
 import { OrderActions } from '../order-actions/order-actions';
 import { OrderStatusHistory } from '../order-status-history/order-status-history';
+import { ReorderModal } from '../reorder-modal/reorder-modal';
 import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-order-history',
-  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderActions, OrderStatusHistory],
+  imports: [CommonModule, FormsModule, OrderCancelModal, OrderStatusModal, OrderActions, OrderStatusHistory, ReorderModal],
   templateUrl: './order-history.html',
   styleUrl: './order-history.scss'
 })
 export class OrderHistory implements OnInit {
   @ViewChild(OrderCancelModal) cancelModal!: OrderCancelModal;
   @ViewChild(OrderStatusModal) statusModal!: OrderStatusModal;
+  @ViewChild(ReorderModal) reorderModal!: ReorderModal;
 
   ordersPage: OrdersPage | null = null;
   orders: Order[] = [];
@@ -235,6 +237,17 @@ export class OrderHistory implements OnInit {
         this.statusModal.hide();
       }
     });
+  }
+
+  onReorderClick(orderId: string): void {
+    this.reorderModal.onClose(this.onReorderClose.bind(this));
+    this.reorderModal.show(orderId);
+  }
+
+  onReorderClose(result: string): void {
+    if (result === 'added') {
+      this.loadOrders();
+    }
   }
 
   formatDate(dateString: string): string {

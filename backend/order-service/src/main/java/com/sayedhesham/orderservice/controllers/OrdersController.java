@@ -7,6 +7,8 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,7 +32,9 @@ import com.sayedhesham.orderservice.dto.OrderDTO;
 import com.sayedhesham.orderservice.dto.OrderStatusResponseDTO;
 import com.sayedhesham.orderservice.dto.OrderStatusUpdateDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
+import com.sayedhesham.orderservice.dto.ReorderResponseDTO;
 import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
+import com.sayedhesham.orderservice.exceptions.UnauthorizedOrderAccessException;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.service.OrderSagaOrchestrator;
 import com.sayedhesham.orderservice.service.OrderService;
@@ -41,6 +45,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/")
 class OrdersController {
+
+    private static final Logger log = LoggerFactory.getLogger(OrdersController.class);
 
     @Autowired
     private OrderSagaOrchestrator orderSagaOrchestrator;
@@ -418,6 +424,38 @@ class OrdersController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ise.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Get items available for reorder from a past order
+     * 
+     * @param orderId The order ID to reorder from
+     * @return ReorderResponseDTO with categorized items
+     */
+    @GetMapping("/{orderId}/reorder")
+    public ResponseEntity<Object> getItemsForReorder(@PathVariable String orderId) {
+        try {
+            log.info("Reorder request for order: {}", orderId);
+            
+            ReorderResponseDTO response = orderService.getItemsForReorder(orderId);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (IllegalArgumentException iae) {
+            log.warn("Bad request for reorder: {}", iae.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: " + iae.getMessage());
+            
+        } catch (UnauthorizedOrderAccessException uoae) {
+            log.warn("Unauthorized reorder attempt: {}", uoae.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(uoae.getMessage());
+            
+        } catch (Exception e) {
+            log.error("Error processing reorder request: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred while processing your reorder request");
         }
     }
 
