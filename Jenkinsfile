@@ -8,7 +8,7 @@ pipeline {
     environment {
         ROLLEDBACK = 'false'
         SONARQUBE_ENV = 'local-sonar'
-        SONAR_TOKEN = 'sqa_130fe808fabd646be7d94282b8d2a36440e3edab'
+        SONAR_TOKEN = 'squ_63110b64deb894c04c07f288cf6e7fafb4fb826e'
         SONAR_HOST_URL = 'http://localhost:9000'
     }
 
