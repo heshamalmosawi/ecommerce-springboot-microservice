@@ -57,7 +57,7 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube Analysis - Backend') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     dir('backend') {
@@ -70,8 +70,32 @@ pipeline {
                            "-Dsonar.coverage.jacoco.xmlReportPaths=*/target/site/jacoco/jacoco.xml " +
                            "-Dsonar.token=${SONAR_TOKEN}"
                     }
+                }
+            }
+        }
+
+        stage('Quality Gate - Backend') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    script {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                echo "Backend Quality Gate failed with status: ${qg.status}"
+                                echo "Analysis results available at: ${SONAR_HOST_URL}/dashboard?id=esouq"
+                                error "Pipeline aborted due to backend quality gate failure: ${qg.status}"
+                            }
+                            echo "Backend Quality Gate passed with status: ${qg.status}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis - Frontend') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
                     dir('frontend') {
-                        sh 'npm ci'
                         sh """
                             npx sonar-scanner \
                               -Dsonar.projectKey=ecommerce-frontend \
@@ -85,18 +109,19 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Quality Gate - Frontend') {
             steps {
-                script {
-                    timeout(time: 5, unit: 'MINUTES') {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            echo "Quality Gate failed with status: ${qg.status}"
-                            echo "Analysis results available at: http://localhost:9000/dashboard?id=esouq"
-                            echo "Analysis results available at: http://localhost:9000/dashboard?id=ecommerce-frontend"
-                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    script {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                echo "Frontend Quality Gate failed with status: ${qg.status}"
+                                echo "Analysis results available at: ${SONAR_HOST_URL}/dashboard?id=ecommerce-frontend"
+                                error "Pipeline aborted due to frontend quality gate failure: ${qg.status}"
+                            }
+                            echo "Frontend Quality Gate passed with status: ${qg.status}"
                         }
-                        echo "Quality Gate passed with status: ${qg.status}"
                     }
                 }
             }
