@@ -34,6 +34,7 @@ import com.sayedhesham.orderservice.dto.OrderStatusUpdateDTO;
 import com.sayedhesham.orderservice.dto.PurchaseSummaryDTO;
 import com.sayedhesham.orderservice.dto.ReorderResponseDTO;
 import com.sayedhesham.orderservice.dto.SellerAnalyticsSummaryDTO;
+import com.sayedhesham.orderservice.exceptions.UnauthorizedOrderAccessException;
 import com.sayedhesham.orderservice.model.Order;
 import com.sayedhesham.orderservice.service.OrderSagaOrchestrator;
 import com.sayedhesham.orderservice.service.OrderService;
@@ -446,10 +447,10 @@ class OrdersController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Error: " + iae.getMessage());
             
-        } catch (IllegalStateException ise) {
-            log.warn("Unauthorized reorder attempt: {}", ise.getMessage());
+        } catch (UnauthorizedOrderAccessException uoae) {
+            log.warn("Unauthorized reorder attempt: {}", uoae.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ise.getMessage());
+                .body(uoae.getMessage());
             
         } catch (Exception e) {
             log.error("Error processing reorder request: {}", e.getMessage());

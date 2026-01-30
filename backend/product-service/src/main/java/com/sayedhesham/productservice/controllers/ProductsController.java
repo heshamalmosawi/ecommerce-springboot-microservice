@@ -189,7 +189,29 @@ public class ProductsController {
      */
     @GetMapping("/batch")
     public ResponseEntity<Object> getProductsBatch(@RequestParam List<String> ids) {
-        System.out.println("[ProductsController] /batch endpoint called with " + ids.size() + " IDs");
+        System.out.println("[ProductsController] /batch endpoint called with " + (ids != null ? ids.size() : 0) + " IDs");
+        
+        // Validate input
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Product IDs list cannot be null or empty");
+        }
+        
+        // Limit batch size to prevent DoS attacks
+        final int MAX_BATCH_SIZE = 100;
+        if (ids.size() > MAX_BATCH_SIZE) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
+        }
+        
+        // Validate individual IDs
+        List<String> invalidIds = ids.stream()
+            .filter(id -> id == null || id.trim().isEmpty())
+            .toList();
+        if (!invalidIds.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error: Product IDs cannot be null or empty strings");
+        }
         
         try {
             List<ProductResponseDTO> products = prodService.getProductsByIds(ids);

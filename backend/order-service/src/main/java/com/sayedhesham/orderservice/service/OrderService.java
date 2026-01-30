@@ -497,13 +497,13 @@ public class OrderService {
             if (availableQuantity < requestedQuantity) {
                 itemBuilder.availableQuantity(availableQuantity);
                 warnings.add(String.format(
-                    "Only %d of %d '%s' available",
-                    availableQuantity, requestedQuantity, orderItem.getProductName()));
+                    "Only %d of %d '%s' available - will add %d to cart",
+                    availableQuantity, requestedQuantity, orderItem.getProductName(), availableQuantity));
             } else {
                 itemBuilder.availableQuantity(requestedQuantity);
             }
             
-            if (!currentProduct.getPrice().equals(orderItem.getPrice())) {
+            if (!java.util.Objects.equals(currentProduct.getPrice(), orderItem.getPrice())) {
                 warnings.add(String.format(
                     "Price changed for '%s': %.2f → %.2f",
                     orderItem.getProductName(),

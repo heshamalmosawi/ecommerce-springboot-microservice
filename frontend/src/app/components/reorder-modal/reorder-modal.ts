@@ -34,9 +34,9 @@ export class ReorderModal implements OnInit {
     this.loadReorderData();
   }
 
-  hide(): void {
+  hide(result: string = ''): void {
     this.visible = false;
-    this.onCloseCallback?.('');
+    this.onCloseCallback?.(result);
     this.onCloseCallback = null;
   }
 
@@ -68,6 +68,12 @@ export class ReorderModal implements OnInit {
     return item.availableQuantity < item.requestedQuantity;
   }
 
+  /**
+   * Adds available items to cart.
+   * Note: Uses availableQuantity (not requestedQuantity) to ensure we only add
+   * what's actually in stock. Users are warned about limited stock via the
+   * warnings displayed in the modal before they confirm the reorder.
+   */
   addToCart(): void {
     if (!this.reorderData || this.reorderData.availableItems.length === 0) return;
 
@@ -77,10 +83,11 @@ export class ReorderModal implements OnInit {
       const product: Product = {
         id: item.productId,
         name: item.productName,
-        description: '',
+        description: item.productName, // Use product name as fallback description
         price: item.currentPrice,
+        // Use availableQuantity to add only what's in stock (user sees warning if limited)
         quantity: item.availableQuantity,
-        sellerName: '',
+        sellerName: 'Reorder', // Mark as reorder item
         imageMediaIds: [],
         imageUrl: item.imageUrl
       };
@@ -89,7 +96,7 @@ export class ReorderModal implements OnInit {
 
     setTimeout(() => {
       this.addingToCart = false;
-      this.hide();
+      this.hide('added');
     }, 500);
   }
 

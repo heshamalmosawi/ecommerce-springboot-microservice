@@ -240,6 +240,7 @@ export class OrderHistory implements OnInit {
   }
 
   onReorderClick(orderId: string): void {
+    this.reorderModal.onClose(this.onReorderClose.bind(this));
     this.reorderModal.show(orderId);
   }
 
