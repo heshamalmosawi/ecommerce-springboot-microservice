@@ -189,10 +189,10 @@
   </div>
 
   <app-order-cancel-modal (confirm)="onCancelOrderConfirm($event)"
-    (cancel)="cancelModal.hide()"></app-order-cancel-modal>
+    (cancelled)="cancelModal.hide()"></app-order-cancel-modal>
 
   <app-order-status-modal (confirm)="onUpdateStatusConfirm($event)"
-    (cancel)="statusModal.hide()"></app-order-status-modal>
+    (cancelled)="statusModal.hide()"></app-order-status-modal>
 
   <app-reorder-modal></app-reorder-modal>
   }

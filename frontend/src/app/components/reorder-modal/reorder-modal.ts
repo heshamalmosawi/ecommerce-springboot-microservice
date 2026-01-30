@@ -10,7 +10,7 @@ import { Product } from '../../services/product';
   templateUrl: './reorder-modal.html',
   styleUrl: './reorder-modal.scss'
 })
-export class ReorderModal implements OnInit {
+export class ReorderModal {
   private orderService = inject(OrderService);
   private cartService = inject(CartService);
 
@@ -22,8 +22,6 @@ export class ReorderModal implements OnInit {
 
   visible = false;
   private onCloseCallback: ((result: string) => void) | null = null;
-
-  ngOnInit(): void {}
 
   show(orderId: string): void {
     this.orderId = orderId;

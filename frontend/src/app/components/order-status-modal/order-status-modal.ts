@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 export class OrderStatusModal {
   @Input() currentStatus = '';
   @Output() confirm = new EventEmitter<{status: string, reason: string}>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   visible = false;
   loading = false;
@@ -57,7 +57,7 @@ export class OrderStatusModal {
 
   onCancel(): void {
     this.hide();
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   onBackdropClick(event: MouseEvent): void {

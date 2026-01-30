@@ -233,11 +233,11 @@
 
   <app-order-cancel-modal
     (confirm)="onCancelOrderConfirm($event)"
-    (cancel)="cancelModal.hide()"
+    (cancelled)="cancelModal.hide()"
   ></app-order-cancel-modal>
 
   <app-order-status-modal
     (confirm)="onUpdateStatusConfirm($event)"
-    (cancel)="statusModal.hide()"
+    (cancelled)="statusModal.hide()"
   ></app-order-status-modal>
 </div>

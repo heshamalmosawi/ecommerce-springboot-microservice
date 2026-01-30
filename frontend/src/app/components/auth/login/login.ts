@@ -11,7 +11,7 @@ import { AuthService, LoginRequest } from '../../../services/auth';
   styleUrl: './login.scss'
 })
 
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   @Output() switchToRegister = new EventEmitter<void>();
   loginForm: FormGroup;
   isLoading = false;
@@ -29,8 +29,6 @@ export class LoginComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit(): void {
     this.submitAttempted = true;

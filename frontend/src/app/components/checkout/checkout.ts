@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CartService } from '../../services/cart';
@@ -15,7 +15,7 @@ import { Toast } from '../toast/toast';
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss'
 })
-export class Checkout implements OnInit {
+export class Checkout implements OnInit, OnDestroy {
   items: Product[] = [];
   private cartSubscription!: Subscription;
   checkoutForm: FormGroup;

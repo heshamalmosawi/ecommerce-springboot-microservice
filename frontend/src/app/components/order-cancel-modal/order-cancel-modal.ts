@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class OrderCancelModal {
   @Output() confirm = new EventEmitter<string>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   visible = false;
   loading = false;
@@ -36,7 +36,7 @@ export class OrderCancelModal {
 
   onCancel(): void {
     this.hide();
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   onBackdropClick(event: MouseEvent): void {
