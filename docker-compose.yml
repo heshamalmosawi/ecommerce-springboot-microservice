@@ -117,6 +117,22 @@ services:
       - kafka
     restart: unless-stopped
 
+  order-service:
+    build:
+      context: ./backend/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+      - eureka-server
+      - kafka
+      - product-service
+    restart: unless-stopped
+
   # API Gateway
   api-gateway:
     build:
@@ -134,6 +150,7 @@ services:
       - product-service
       - user-service
       - media-service
+      - order-service
     restart: unless-stopped
 
   # Frontend

@@ -35,7 +35,7 @@ start_service() {
 
 # 1. Start Eureka Service Discovery
 echo -e "\n${BLUE}Step 1: Starting Eureka Service Discovery${NC}"
-# start_service "eureka-service-discovery" "eureka-service-discovery"
+start_service "eureka-service-discovery" "eureka-service-discovery"
 
 # Wait 2 seconds for Eureka to initialize
 echo -e "${YELLOW}Waiting 2 seconds for Eureka to start...${NC}"
@@ -46,11 +46,11 @@ echo -e "\n${BLUE}Step 2: Starting Core Services${NC}"
 start_service "user-service" "user-service"
 start_service "product-service" "product-service"
 start_service "media-service" "media-service"
-# start_service "order-service" "order-service"
+start_service "order-service" "order-service"
 
-# Wait 8 seconds for core services to register with Eureka
-echo -e "${YELLOW}Waiting 8 seconds for core services to start and register...${NC}"
-sleep 8
+# Wait 10 seconds for core services to register with Eureka
+echo -e "${YELLOW}Waiting 10 seconds for core services to start and register...${NC}"
+sleep 10
 
 # 3. Start API Gateway
 echo -e "\n${BLUE}Step 3: Starting API Gateway${NC}"
@@ -68,9 +68,9 @@ echo -e "  - API Gateway:      http://localhost:8080"
 echo -e "\n${YELLOW}To stop all services, run:${NC}"
 echo -e "  pkill -f 'spring-boot:run'"
 echo -e "\n${YELLOW}To view logs:${NC}"
-# echo -e "  tail -f /tmp/eureka-service-discovery.log"
+echo -e "  tail -f /tmp/eureka-service-discovery.log"
 echo -e "  tail -f /tmp/user-service.log"
 echo -e "  tail -f /tmp/product-service.log"
 echo -e "  tail -f /tmp/media-service.log"
-# echo -e "  tail -f /tmp/order-service.log"
+echo -e "  tail -f /tmp/order-service.log"
 echo -e "  tail -f /tmp/apigateway.log"

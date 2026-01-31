@@ -20,6 +20,7 @@ A modern e-commerce platform built with Spring Boot microservices and Angular fr
 | API Gateway | Secure gateway to all services |
 | User Service | User management & authentication |
 | Product Service | Product catalog management |
+| Order Service | Order management with saga orchestration |
 | Media Service | Media file handling |
 | Eureka Server | Service discovery |
 | MongoDB | Data persistence |
@@ -118,9 +119,69 @@ This starts:
 
 All APIs are accessible through the API Gateway:
 
+### Core Services
 - `https://localhost:8443/users/*` - User management
 - `https://localhost:8443/products/*` - Product catalog  
 - `https://localhost:8443/media/*` - Media handling
+
+### Order Management
+- `GET https://localhost:8443/orders` - Get user orders (with filtering: status, date range, pagination)
+- `POST https://localhost:8443/orders` - Create new order
+- `GET https://localhost:8443/orders/{orderId}` - Get order details
+- `PATCH https://localhost:8443/orders/{orderId}/status` - Update order status (sellers)
+- `PATCH https://localhost:8443/orders/{orderId}/cancel` - Cancel order (buyers & sellers)
+
+### Reorder Functionality
+- `GET https://localhost:8443/orders/{orderId}/reorder` - Get items available for reorder from delivered orders
+
+### Seller Features
+- `GET https://localhost:8443/orders/seller` - Get seller's orders (orders containing seller's products)
+- `GET https://localhost:8443/orders/analytics/purchase-summary` - Purchase analytics for buyers
+- `GET https://localhost:8443/orders/analytics/seller-summary` - Sales analytics for sellers
+
+## 👥 Seller Features
+
+### Seller Dashboard
+Sellers can access specialized tools for managing their products and orders:
+
+- **Product Management**: Add, edit, and manage product listings
+- **Order Management**: View and update status of orders containing seller's products
+- **Sales Analytics**: Track revenue, best-selling products, and order statistics
+- **Inventory Control**: Monitor product availability and stock levels
+
+### Seller Order Workflow
+1. Seller views orders through `/seller/orders` endpoint
+2. Seller can update order status: PENDING → PROCESSING → SHIPPED → DELIVERED
+3. Seller can cancel orders in PENDING or PROCESSING status
+4. Automatic inventory release when orders are cancelled
+5. Real-time order status history tracking
+
+### Order Status Flow
+- **PENDING**: Order created, awaiting seller processing
+- **PROCESSING**: Order being prepared by seller
+- **SHIPPED**: Order dispatched to buyer
+- **DELIVERED**: Order successfully delivered to buyer
+- **CANCELLED**: Order cancelled by buyer or seller
+- **FAILED**: Order processing failed
+
+## 🔄 Reorder Functionality
+
+Buyers can quickly repurchase items from their delivered orders:
+
+### Features
+- **One-Click Reorder**: Access all items from past orders
+- **Availability Check**: Real-time stock verification
+- **Price Comparison**: Shows price changes since original purchase
+- **Stock Warnings**: Alerts for limited availability
+- **Partial Reorder**: Add only available items if some are out of stock
+
+### Reorder Process
+1. Buyer navigates to order history
+2. Clicks "Reorder" button on delivered orders
+3. System checks current product availability and pricing
+4. Shows available items with warnings for price changes/limited stock
+5. Buyer confirms to add available items to cart
+6. Proceed to checkout
 
 ## 🔒 SSL Configuration
 
