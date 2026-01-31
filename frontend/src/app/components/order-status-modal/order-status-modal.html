@@ -1,0 +1,70 @@
+@if (visible) {
+<div class="modal-overlay" (click)="onBackdropClick($event)" (keydown)="onKeyDown($event)" tabindex="0">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Update Order Status</h2>
+      <button class="modal-close" (click)="onCancel()" aria-label="Close modal">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="current-status">
+        <span class="label">Current Status:</span>
+        <span class="status-badge">{{ currentStatus }}</span>
+      </div>
+
+      <div class="form-group">
+        <label for="newStatus">New Status</label>
+        <select
+          id="newStatus"
+          [(ngModel)]="selectedStatus"
+          [disabled]="loading"
+        >
+          <option value="">Select status...</option>
+          @for (status of validStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="statusReason">Reason (optional)</label>
+        <textarea
+          id="statusReason"
+          [(ngModel)]="reason"
+          placeholder="Provide a reason for this status change (optional)"
+          rows="4"
+          maxlength="500"
+          [disabled]="loading"
+        ></textarea>
+        <div class="char-count">{{ reason?.length || 0 }}/500</div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="loading"
+      >
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="onConfirm()"
+        [disabled]="!canConfirm"
+      >
+        @if (loading) {
+          <span class="spinner"></span>
+          Updating...
+        } @else {
+          Update Status
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}

@@ -2,6 +2,8 @@ package com.sayedhesham.productservice.dto;
 
 import java.util.List;
 
+import com.sayedhesham.productservice.model.Category;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,5 +16,7 @@ public class ProductResponseDTO {
     private Double price;
     private Integer quantity;
     private String sellerName;
+    private Category category;
+    private String categoryDisplayName;
     private List<String> imageMediaIds;
 }

@@ -162,6 +162,13 @@ create_default_topics() {
     # Media Processing Topics
     create_topic --topic "media.uploaded" --partitions 3 --replication-factor 1
     
+    # Order Service Topics
+    create_topic --topic "order.created" --partitions 3 --replication-factor 1
+    create_topic --topic "order.product.event" --partitions 3 --replication-factor 1
+    create_topic --topic "products.reservation.success" --partitions 3 --replication-factor 1
+    create_topic --topic "products.reservation.failed" --partitions 3 --replication-factor 1
+    create_topic --topic "order.inventory.release" --partitions 3 --replication-factor 1
+    
     echo -e "${GREEN}All default topics created successfully!${NC}"
 }
 

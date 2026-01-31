@@ -11,7 +11,7 @@ import { ImageUtilsService, ImageData } from '../../../services/image-utils';
   templateUrl: './register.html',
   styleUrl: './register.scss'
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
   @Output() switchToLogin = new EventEmitter<void>();
   registerForm: FormGroup;
   isLoading = false;
@@ -37,8 +37,6 @@ export class RegisterComponent implements OnInit {
       avatar_b64: ['']
     }, { validators: this.passwordMatchValidator });
   }
-
-  ngOnInit(): void { }
 
   passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
     const password = form.get('password');

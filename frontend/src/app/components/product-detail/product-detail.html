@@ -1,4 +1,6 @@
 <div class="product-detail-container">
+  <app-toast />
+
   @if (loading) {
     <div class="loading-state">
       <div class="spinner"></div>
@@ -34,6 +36,9 @@
         
         <div class="product-info-section">
           <h1 class="product-name">{{ product.name }}</h1>
+          @if (product.categoryDisplayName) {
+          <p class="product-category">{{ product.categoryDisplayName }}</p>
+          }
           <p class="product-description">{{ product.description }}</p>
           
           <div class="product-details">
@@ -49,11 +54,26 @@
               <p><strong>Seller:</strong> {{ product.sellerName }}</p>
             </div>
             
-            @if (isProductOwner()) {
-              <div class="product-actions">
+            <div class="product-actions">
+              @if (!isProductOwner()) {
+                <button 
+                  (click)="addToCart()" 
+                  class="btn-add-to-cart"
+                  [disabled]="addingToCart || !product || product.quantity === 0"
+                >
+                  @if (addingToCart) {
+                    <span class="btn-spinner"></span>
+                    Adding...
+                  } @else {
+                    🛒 Add to Cart
+                  }
+                </button>
+              }
+              
+              @if (isProductOwner()) {
                 <button (click)="editProduct()" class="btn-edit">Edit Product</button>
-              </div>
-            }
+              }
+            </div>
           </div>
         </div>
       </div>

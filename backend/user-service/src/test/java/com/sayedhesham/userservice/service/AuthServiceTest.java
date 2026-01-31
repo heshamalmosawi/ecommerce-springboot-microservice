@@ -23,6 +23,7 @@ import com.sayedhesham.userservice.dto.LoginResponse;
 import com.sayedhesham.userservice.dto.RegisterRequest;
 import com.sayedhesham.userservice.model.User;
 import com.sayedhesham.userservice.repository.UserRepository;
+import com.sayedhesham.userservice.service.security.JwtService;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -32,6 +33,12 @@ class AuthServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AvatarEventService avatarEventService;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private AuthService authService;
@@ -129,6 +136,7 @@ class AuthServiceTest {
 
         when(userRepo.findByEmail("john@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
+        when(jwtService.generateToken(any(User.class))).thenReturn("mock-jwt-token");
 
         LoginResponse result = authService.loginUser(request);
 

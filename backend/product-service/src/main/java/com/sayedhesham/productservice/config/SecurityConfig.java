@@ -1,6 +1,5 @@
 package com.sayedhesham.productservice.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,9 +16,6 @@ import com.sayedhesham.productservice.service.security.JwtAuthenticationFilter;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,14 +36,17 @@ public class SecurityConfig {
      *
      * @param http the {@link HttpSecurity} object used to configure security
      * settings.
+     * @param jwtAuthFilter the JWT authentication filter to be added to the filter chain.
      * @return the configured {@link SecurityFilterChain} instance.
      * @throws Exception if an error occurs during the configuration process.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         System.out.println("Configuring security filter chain...");
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeHttpRequestsCustomizer -> authorizeHttpRequestsCustomizer
+                .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                .requestMatchers(HttpMethod.GET, "/seller/ids").hasRole("SELLER")
                 .requestMatchers(HttpMethod.GET, "/**").permitAll()
                 .anyRequest().hasRole("SELLER")
                 )

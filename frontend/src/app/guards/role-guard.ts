@@ -9,7 +9,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   // Check if user is authenticated
   if (!authService.isAuthenticated()) {
-    router.navigate(['/auth/login'], { 
+    router.navigate(['/auth'], { 
       queryParams: { returnUrl: state.url } 
     });
     return false;

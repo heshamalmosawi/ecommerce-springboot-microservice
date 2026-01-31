@@ -25,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AvatarProcessingService {
 
+    private static final String MEDIA_TYPE_AVATAR = "avatar";
+
     private final MediaRepository mediaRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -41,7 +43,7 @@ public class AvatarProcessingService {
             String mediaId = processAvatarData(event.getUserId(), event.getAvatarData(), event.getContentType());
 
             // Update user's avatarMediaId (this would typically be done via User Service API)
-            publishMediaProcessedEvent(event.getUserId(), mediaId, "avatar", "uploaded");
+            publishMediaProcessedEvent(event.getUserId(), mediaId, MEDIA_TYPE_AVATAR, "uploaded");
 
             log.info("Successfully processed avatar for user: {}, mediaId: {}", event.getUserId(), mediaId);
         } catch (JsonProcessingException e) {
@@ -62,7 +64,7 @@ public class AvatarProcessingService {
 
             String mediaId = processAvatarData(event.getUserId(), event.getAvatarData(), event.getContentType());
 
-            publishMediaProcessedEvent(event.getUserId(), mediaId, "avatar", "updated");
+            publishMediaProcessedEvent(event.getUserId(), mediaId, MEDIA_TYPE_AVATAR, "updated");
 
             log.info("Successfully updated avatar for user: {}, mediaId: {}", event.getUserId(), mediaId);
         } catch (JsonProcessingException e) {
@@ -81,7 +83,7 @@ public class AvatarProcessingService {
             // Find and delete user's avatar media
             // This would require knowing the user's current avatarMediaId
             // For now, we'll publish a deletion event
-            publishMediaProcessedEvent(event.getUserId(), null, "avatar", "deleted");
+            publishMediaProcessedEvent(event.getUserId(), null, MEDIA_TYPE_AVATAR, "deleted");
 
             log.info("Successfully processed avatar deletion for user: {}", event.getUserId());
         } catch (JsonProcessingException e) {
@@ -100,7 +102,7 @@ public class AvatarProcessingService {
                 .id(UUID.randomUUID().toString())
                 .base64Data(base64Data)
                 .contentType(contentType)
-                .mediaType("avatar")
+                .mediaType(MEDIA_TYPE_AVATAR)
                 .ownerId(userId)
                 .fileSizeBytes(fileSizeBytes)
                 .uploadTimestamp(System.currentTimeMillis())
@@ -112,7 +114,7 @@ public class AvatarProcessingService {
     private void deleteExistingAvatar(String userId) {
         try {
             // Find existing avatar for this user
-            Media existingAvatar = mediaRepository.findByOwnerIdAndMediaType(userId, "avatar");
+            Media existingAvatar = mediaRepository.findByOwnerIdAndMediaType(userId, MEDIA_TYPE_AVATAR);
             if (existingAvatar != null) {
                 log.info("Deleting existing avatar for user: {}, mediaId: {}", userId, existingAvatar.getId());
                 mediaRepository.delete(existingAvatar);

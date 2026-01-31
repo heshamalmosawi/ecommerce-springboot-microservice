@@ -1,5 +1,6 @@
 package com.sayedhesham.productservice.controllers;
 
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,14 +24,19 @@ import com.sayedhesham.productservice.dto.ProductDTO;
 import com.sayedhesham.productservice.dto.ProductResponseDTO;
 import com.sayedhesham.productservice.dto.ProductSearchRequest;
 import com.sayedhesham.productservice.dto.ProductUpdateWithImagesDTO;
+import com.sayedhesham.productservice.model.Category;
 import com.sayedhesham.productservice.model.Product;
 import com.sayedhesham.productservice.service.ProductService;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/")
 public class ProductsController {
+
+    private static final String ERROR_PREFIX = "Error: ";
 
     @Autowired
     private ProductService prodService;
@@ -44,10 +50,10 @@ public class ProductsController {
         try {
             Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-            Page<Product> productPage = prodService.getAll(pageable);
+            Page<ProductResponseDTO> productPage = prodService.getAll(pageable);
             return ResponseEntity.ok(productPage);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -57,6 +63,7 @@ public class ProductsController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String sellerName,
+            @RequestParam(required = false) Category category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "name") String sortBy,
@@ -83,11 +90,12 @@ public class ProductsController {
                     .minPrice(minPrice)
                     .maxPrice(maxPrice)
                     .sellerName(sellerName)
+                    .category(category)
                     .build();
             var result = prodService.searchProducts(searchRequest, pageable);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -97,9 +105,9 @@ public class ProductsController {
             ProductResponseDTO product = prodService.getByIdWithSellerName(id);
             return ResponseEntity.ok(product);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
 
         }
     }
@@ -110,20 +118,20 @@ public class ProductsController {
             Product createdProduct = prodService.create(createProductDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
         } catch (Exception e) {
-            System.out.println("Error creating product: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            log.error("Error creating product: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
-    
+
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateProductWithImages(@PathVariable String id, @Valid @RequestBody ProductUpdateWithImagesDTO product) {
         try {
             Product updatedProduct = prodService.updateProductWithImages(id, product);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -133,9 +141,9 @@ public class ProductsController {
             Product updatedProduct = prodService.update(id, product);
             return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 
@@ -145,9 +153,74 @@ public class ProductsController {
             prodService.delete(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException r) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + r.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ERROR_PREFIX + r.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
+        }
+    }
+
+    /**
+     * Get product IDs for the current seller (authenticated user) Used by
+     * order-service for seller analytics Requires SELLER role
+     */
+    @GetMapping("/seller/ids")
+    public ResponseEntity<Object> getMyProductIds() {
+        log.info("/seller/ids endpoint called");
+
+        try {
+            log.debug("Calling ProductService.getMyProductIds");
+            List<String> productIds = prodService.getMyProductIds();
+            log.info("Successfully retrieved {} product IDs", productIds.size());
+            return ResponseEntity.ok(productIds);
+        } catch (IllegalArgumentException e) {
+            log.error("Unauthorized error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ERROR_PREFIX + e.getMessage());
+        } catch (Exception e) {
+            log.error("Internal server error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ERROR_PREFIX + e.getMessage());
+        }
+    }
+
+    /**
+     * Get products by list of IDs Used by order-service for reorder
+     * functionality
+     *
+     * @param ids List of product IDs
+     * @return List of product response DTOs
+     */
+    @GetMapping("/batch")
+    public ResponseEntity<Object> getProductsBatch(@RequestParam List<String> ids) {
+        log.info("/batch endpoint called with {} IDs", (ids != null ? ids.size() : 0));
+
+        // Validate input
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ERROR_PREFIX + "Product IDs list cannot be null or empty");
+        }
+
+        // Limit batch size to prevent DoS attacks
+        final int MAX_BATCH_SIZE = 100;
+        if (ids.size() > MAX_BATCH_SIZE) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ERROR_PREFIX + "Batch size cannot exceed " + MAX_BATCH_SIZE + " items");
+        }
+
+        // Validate individual IDs
+        List<String> invalidIds = ids.stream()
+                .filter(id -> id == null || id.trim().isEmpty())
+                .toList();
+        if (!invalidIds.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ERROR_PREFIX + "Product IDs cannot be null or empty strings");
+        }
+
+        try {
+            List<ProductResponseDTO> products = prodService.getProductsByIds(ids);
+            log.info("Successfully retrieved {} products", products.size());
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            log.error("Error retrieving products batch: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_PREFIX + e.getMessage());
         }
     }
 }

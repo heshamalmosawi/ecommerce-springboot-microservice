@@ -1,4 +1,6 @@
 <div class="home-container">
+  <app-toast />
+
   <div class="hero-section">
     <h1>Welcome to eSouq</h1>
     <p>The best digital bahraini marketplace!</p>
@@ -16,63 +18,65 @@
         <div class="section-header">
           <h2 class="section-title">
             @if (hasActiveFilters) {
-              Search Results
+            Search Results
             } @else {
-              Featured Products
+            Featured Products
             }
           </h2>
           @if (totalElements > 0) {
-            <span class="results-count">{{ totalElements }} products found</span>
+          <span class="results-count">{{ totalElements }} products found</span>
           }
         </div>
-        
+
         @if (loading) {
-          <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Loading amazing products...</p>
-          </div>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading amazing products...</p>
+        </div>
         } @else if (error) {
-          <div class="error-state">
-            <p>{{ error }}</p>
-            <button (click)="loadProducts()" class="retry-btn">Try Again</button>
-          </div>
+        <div class="error-state">
+          <p>{{ error }}</p>
+          <button (click)="loadProducts()" class="retry-btn">Try Again</button>
+        </div>
         } @else if (products.length === 0) {
-          <div class="empty-state">
-            @if (hasActiveFilters) {
-              <p>No products found matching your search criteria.</p>
-              <p class="empty-hint">Try adjusting your filters or search terms.</p>
-            } @else {
-              <p>No products available at the moment.</p>
-            }
-          </div>
+        <div class="empty-state">
+          @if (hasActiveFilters) {
+          <p>No products found matching your search criteria.</p>
+          <p class="empty-hint">Try adjusting your filters or search terms.</p>
+          } @else {
+          <p>No products available at the moment.</p>
+          }
+        </div>
         } @else {
-          <div class="products-grid">
-            @for (product of products; track product.id) {
-              <div class="product-card" (click)="navigateToProduct(product.id)">
-                <div class="product-image">
-                  <img [src]="product.imageUrl" [alt]="product.name" />
+        <div class="products-grid">
+          @for (product of products; track product.id) {
+          <div class="product-card" (click)="navigateToProduct(product.id)">
+            <div class="product-image">
+              <img [src]="product.imageUrl" [alt]="product.name" />
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+              @if (product.categoryDisplayName) {
+              <p class="product-category">{{ product.categoryDisplayName }}</p>
+              }
+              <p class="product-description">{{ product.description }}</p>
+              <div class="product-footer">
+                <div class="price-quantity">
+                  <span class="product-price">${{ product.price.toFixed(2) }}</span>
+                  <span class="product-quantity">{{ product.quantity }} in stock</span>
                 </div>
-                <div class="product-info">
-                  <h3 class="product-name">{{ product.name }}</h3>
-                  <p class="product-description">{{ product.description }}</p>
-                  <div class="product-footer">
-                    <span class="product-price">${{ product.price.toFixed(2) }}</span>
-                    <span class="product-quantity">{{ product.quantity }} in stock</span>
-                  </div>
-                </div>
+                <button (click)="addToCart(product); $event.stopPropagation()" [disabled]="product.quantity === 0">🛒
+                  Add to Cart</button>
               </div>
-            }
+            </div>
           </div>
-          
-          <!-- Pagination Component -->
-          <app-pagination
-            [currentPage]="currentPage"
-            [totalPages]="totalPages"
-            [totalElements]="totalElements"
-            [pageSize]="pageSize"
-            (pageChange)="onPageChange($event)"
-            (pageSizeChange)="onPageSizeChange($event)">
-          </app-pagination>
+          }
+        </div>
+
+        <!-- Pagination Component -->
+        <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [totalElements]="totalElements"
+          [pageSize]="pageSize" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)">
+        </app-pagination>
         }
       </div>
     </main>

@@ -8,7 +8,7 @@ pipeline {
     environment {
         ROLLEDBACK = 'false'
         SONARQUBE_ENV = 'local-sonar'
-        SONAR_TOKEN = 'squ_79c1a6261ce4b4eff8aaa5a058afdd197b433494'
+        SONAR_TOKEN = 'squ_63110b64deb894c04c07f288cf6e7fafb4fb826e'
         SONAR_HOST_URL = 'http://localhost:9000'
     }
 
@@ -40,7 +40,7 @@ pipeline {
         stage('Backend build & test') {
             steps {
                 dir('backend') {
-                    sh './mvnw -B -q clean install -T 2C'
+                    sh './mvnw -B -q clean verify -T 2C'
                     echo "Backend build and tests completed successfully"
                 }
             }
@@ -66,7 +66,8 @@ pipeline {
                            "-Dsonar.projectName='esouq' " +
                            "-Dsonar.sources=src/main/java " +
                            "-Dsonar.tests=src/test/java " +
-                           "-Dsonar.java.binaries=target " +
+                           "-Dsonar.java.binaries=target/classes " +
+                           "-Dsonar.coverage.jacoco.xmlReportPaths=*/target/site/jacoco/jacoco.xml " +
                            "-Dsonar.token=${SONAR_TOKEN}"
                     }
                     dir('frontend') {
@@ -88,22 +89,14 @@ pipeline {
             steps {
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
-                        try {
-                            // Try the standard way first
-                            def qg = waitForQualityGate()
-                            if (qg.status != 'OK') {
-                                error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                            }
-                            echo "Quality Gate status: ${qg.status}"
-                        } catch (Exception e) {
-                            // Fallback: Since SonarQube analysis was successful, assume Quality Gate passes
-                            echo "Standard Quality Gate check failed with error: ${e.getMessage()}"
-                            echo "SonarQube analysis completed successfully in both backend and frontend."
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            echo "Quality Gate failed with status: ${qg.status}"
                             echo "Analysis results available at: http://localhost:9000/dashboard?id=esouq"
                             echo "Analysis results available at: http://localhost:9000/dashboard?id=ecommerce-frontend"
-                            echo "Assuming Quality Gate status: OK"
-                            echo "QUALITY_GATE_STATUS=OK"
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
                         }
+                        echo "Quality Gate passed with status: ${qg.status}"
                     }
                 }
             }
@@ -173,7 +166,7 @@ pipeline {
         failure {
             echo "Build #${env.BUILD_NUMBER} failed."
             emailext(
-                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                to: 'hishamalmosawii@gmail.com',
                 subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 mimeType: 'text/html',
                 body: """
@@ -200,7 +193,7 @@ pipeline {
                 }
             }
             emailext(
-                to: 'adnan.ajaberi@gmail.com, hishamalmosawii@gmail.com, hashemalzaki44@gmail.com',
+                to: 'hishamalmosawii@gmail.com',
                 subject: "[AUTOMATED JENKINS CICD NOTIFICATION] ✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 mimeType: 'text/html',
                 body: """

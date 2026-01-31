@@ -1,5 +1,7 @@
 package com.sayedhesham.productservice.dto;
 
+import com.sayedhesham.productservice.model.Category;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,4 +16,5 @@ public class ProductSearchRequest {
     private Double minPrice;
     private Double maxPrice;
     private String sellerName;
+    private Category category;
 }

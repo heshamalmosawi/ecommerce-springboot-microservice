@@ -1,0 +1,213 @@
+<div class="order-history-container">
+  <div class="order-history-header">
+    <h2>Order History</h2>
+    <div class="header-controls">
+      <div class="sort-controls">
+        <label for="sortBy">Sort by:</label>
+        <select id="sortBy" [(ngModel)]="sortBy" (change)="onSortChange(sortBy)">
+          <option value="createdAt">Date</option>
+          <option value="totalPrice">Price</option>
+          <option value="status">Status</option>
+        </select>
+        <button class="sort-dir-btn" (click)="sortDir = sortDir === 'desc' ? 'asc' : 'desc'; onSortChange(sortBy)">
+          {{ sortDir === 'desc' ? 'Desc' : 'Asc' }}
+        </button>
+      </div>
+      <div class="filter-toggle">
+        <button class="filter-btn" (click)="toggleFilters()" [class.active]="hasActiveFilters()">
+          <span>{{ showFilters ? 'Hide Filters' : 'Show Filters' }}</span>
+          @if (hasActiveFilters()) {
+          <span class="filter-badge">•</span>
+          }
+        </button>
+      </div>
+      <div class="search-controls">
+        <input type="text" [(ngModel)]="searchOrderId" (keyup.enter)="onSearchEnter($event)"
+          placeholder="Search by order ID..." class="search-input" [disabled]="searching" />
+        @if (!searchMode) {
+        <button class="search-btn" (click)="searchOrder()" [disabled]="searching || !searchOrderId.trim()">
+          Search
+        </button>
+        }
+        @if (searchMode) {
+        <button class="clear-btn" (click)="clearSearch()" [disabled]="searching">
+          Clear
+        </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (showFilters) {
+  <div class="filters-panel">
+    <div class="filter-group">
+      <label for="filterStatus">Status:</label>
+      <select id="filterStatus" [(ngModel)]="filterStatus">
+        <option value="">All</option>
+        <option value="PENDING">Pending</option>
+        <option value="PROCESSING">Processing</option>
+        <option value="SHIPPED">Shipped</option>
+        <option value="DELIVERED">Delivered</option>
+        <option value="CANCELLED">Cancelled</option>
+        <option value="FAILED">Failed</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filterStartDate">From Date:</label>
+      <input type="date" id="filterStartDate" [(ngModel)]="filterStartDate" />
+    </div>
+
+    <div class="filter-group">
+      <label for="filterEndDate">To Date:</label>
+      <input type="date" id="filterEndDate" [(ngModel)]="filterEndDate" />
+    </div>
+
+    <div class="filter-actions">
+      <button class="apply-btn" (click)="applyFilters()">Apply Filters</button>
+      @if (hasActiveFilters()) {
+      <button class="clear-filters-btn" (click)="clearFilters()">Clear All</button>
+      }
+    </div>
+  </div>
+  }
+
+  @if (loading) {
+  <div class="loading">
+    <p>Loading orders...</p>
+  </div>
+  }
+
+  @if (error) {
+  <div class="error">
+    <p>{{ error }}</p>
+  </div>
+  }
+
+  @if (!loading && !error && orders.length === 0) {
+  <div class="no-orders">
+    <p>No orders found.</p>
+  </div>
+  }
+
+  @if (!loading && !error) {
+  <div class="orders-list">
+    @for (order of orders; track order.id) {
+    <div class="order-card" [class.expanded]="isOrderExpanded(order.id)">
+      <div class="order-summary" (click)="toggleOrderExpand(order.id)">
+        <div class="order-info">
+          <div class="order-id">Order #{{ order.id }}</div>
+          <div class="order-date">{{ formatDate(order.createdAt) }}</div>
+        </div>
+        <div class="order-status">
+          <span class="status-badge" [class]="getStatusClass(order.status)">
+            {{ order.status }}
+          </span>
+        </div>
+        <div class="order-total">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">${{ order.totalPrice.toFixed(2) }}</span>
+        </div>
+        <div class="expand-icon">
+          {{ isOrderExpanded(order.id) ? '−' : '+' }}
+        </div>
+      </div>
+
+      @if (isOrderExpanded(order.id)) {
+      <div class="order-details">
+        <div class="detail-section">
+          <h3>Shipping Information</h3>
+          <div class="info-row">
+            <span class="info-label">Name:</span>
+            <span class="info-value">{{ order.fullName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Email:</span>
+            <span class="info-value">{{ order.email }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Phone:</span>
+            <span class="info-value">{{ order.internationalPhone }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Address:</span>
+            <span class="info-value">{{ order.address }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">City:</span>
+            <span class="info-value">{{ order.city }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Postal Code:</span>
+            <span class="info-value">{{ order.postalCode }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Order Items</h3>
+          @for (item of order.orderItems; track item.productId) {
+          <div class="order-item">
+            <div class="item-name">{{ item.productName }}</div>
+            <div class="item-details">
+              <span class="item-quantity">Qty: {{ item.quantity }}</span>
+              <span class="item-price">${{ item.price.toFixed(2) }}</span>
+              <span class="item-total">${{ (item.quantity * item.price).toFixed(2) }}</span>
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="detail-section order-meta">
+          <div class="meta-row">
+            <span class="meta-label">Order ID:</span>
+            <span class="meta-value">{{ order.id }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Created:</span>
+            <span class="meta-value">{{ formatDate(order.createdAt) }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Updated:</span>
+            <span class="meta-value">{{ formatDate(order.updatedAt) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <app-order-status-history [statusHistory]="order.statusHistory" [fallbackStatus]="order.status" [fallbackDate]="order.createdAt"></app-order-status-history>
+        </div>
+
+        @if (isOrderExpanded(order.id)) {
+        <app-order-actions [orderId]="order.id" [currentStatus]="order.status" [userRole]="userRole"
+          (cancelClick)="onCancelOrderClick(order.id)"
+          (updateStatusClick)="onUpdateStatusClick(order.id, order.status)"
+          (reorderClick)="onReorderClick(order.id)"></app-order-actions>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+
+  <app-order-cancel-modal (confirm)="onCancelOrderConfirm($event)"
+    (cancelled)="cancelModal.hide()"></app-order-cancel-modal>
+
+  <app-order-status-modal (confirm)="onUpdateStatusConfirm($event)"
+    (cancelled)="statusModal.hide()"></app-order-status-modal>
+
+  <app-reorder-modal></app-reorder-modal>
+  }
+
+  @if (!loading && !error && orders.length > 0) {
+  <div class="pagination">
+    <button class="pagination-btn" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">
+      Previous
+    </button>
+    <span class="page-info">
+      Page {{ currentPage + 1 }} of {{ totalPages }}
+    </span>
+    <button class="pagination-btn" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">
+      Next
+    </button>
+  </div>
+  }
+</div>

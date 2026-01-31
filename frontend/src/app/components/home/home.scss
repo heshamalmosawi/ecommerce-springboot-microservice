@@ -150,6 +150,20 @@
             line-height: 1.4;
           }
 
+          .product-category {
+            display: inline-block;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976d2;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+            letter-spacing: 0.3px;
+            border: 1px solid #90caf9;
+          }
+
           .product-description {
             color: #7f8c8d;
             font-size: 0.9rem;
@@ -165,16 +179,59 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: 1rem;
 
-            .product-price {
-              font-size: 1.25rem;
-              font-weight: bold;
-              color: #27ae60;
+            .price-quantity {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+
+              .product-price {
+                font-size: 1.25rem;
+                font-weight: bold;
+                color: #27ae60;
+              }
+
+              .product-quantity {
+                font-size: 0.85rem;
+                color: #95a5a6;
+              }
             }
 
-            .product-quantity {
-              font-size: 0.85rem;
-              color: #95a5a6;
+            button {
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
+              border: none;
+              padding: 10px 16px;
+              border-radius: 6px;
+              font-weight: 600;
+              font-size: 0.9rem;
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              flex-shrink: 0;
+
+              &:hover:not(:disabled) {
+                background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+              }
+
+              &:active:not(:disabled) {
+                transform: translateY(0);
+              }
+
+              &:disabled {
+                background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+              }
             }
           }
         }

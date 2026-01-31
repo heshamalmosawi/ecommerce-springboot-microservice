@@ -25,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProductImageProcessingService {
 
+    private static final String MEDIA_TYPE_PRODUCT_IMAGE = "product_image";
+
     private final MediaRepository mediaRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -40,7 +42,7 @@ public class ProductImageProcessingService {
 
             String mediaId = processProductImageData(event.getProductId(), event.getImageData(), event.getContentType());
 
-            publishMediaProcessedEvent(event.getProductId(), mediaId, "product_image", "uploaded");
+            publishMediaProcessedEvent(event.getProductId(), mediaId, MEDIA_TYPE_PRODUCT_IMAGE, "uploaded");
 
             log.info("Successfully processed product image for product: {}, mediaId: {}", event.getProductId(), mediaId);
         } catch (JsonProcessingException e) {
@@ -58,7 +60,7 @@ public class ProductImageProcessingService {
 
             String mediaId = processProductImageData(event.getProductId(), event.getImageData(), event.getContentType());
 
-            publishMediaProcessedEvent(event.getProductId(), mediaId, "product_image", "updated");
+            publishMediaProcessedEvent(event.getProductId(), mediaId, MEDIA_TYPE_PRODUCT_IMAGE, "updated");
 
             log.info("Successfully updated product image for product: {}, mediaId: {}", event.getProductId(), mediaId);
         } catch (JsonProcessingException e) {
@@ -79,7 +81,7 @@ public class ProductImageProcessingService {
             // Delete the media file and database record
             deleteProductImage(event.getImageMediaId());
 
-            publishMediaProcessedEvent(event.getProductId(), event.getImageMediaId(), "product_image", "deleted");
+            publishMediaProcessedEvent(event.getProductId(), event.getImageMediaId(), MEDIA_TYPE_PRODUCT_IMAGE, "deleted");
 
             log.info("Successfully deleted product image for product: {}, mediaId: {}", event.getProductId(), event.getImageMediaId());
         } catch (JsonProcessingException e) {
@@ -98,7 +100,7 @@ public class ProductImageProcessingService {
                 .id(UUID.randomUUID().toString())
                 .base64Data(base64Data)
                 .contentType(contentType)
-                .mediaType("product_image")
+                .mediaType(MEDIA_TYPE_PRODUCT_IMAGE)
                 .ownerId(productId)
                 .fileName(generateFileName(contentType))
                 .fileSizeBytes(fileSizeBytes)

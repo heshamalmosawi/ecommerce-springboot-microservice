@@ -1,0 +1,32 @@
+package com.sayedhesham.orderservice.dto;
+
+import java.util.List;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.Builder;
+import lombok.Builder.Default;
+import lombok.Data;
+
+@Data
+@Builder
+public class ProductDTO {
+
+    @NotBlank
+    private String name;
+    
+    @NotBlank
+    private String description;
+    
+    @NotNull
+    @Positive
+    private Double price;
+    
+    @NotNull
+    @Positive
+    @Default
+    private Integer quantity = 1; // Default quantity, must be positive
+    
+    private List<String> images; // Base64 encoded images
+}
