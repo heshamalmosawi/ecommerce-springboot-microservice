@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.sayedhesham</groupId>
     <artifactId>userservice</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>userservice</name>
     <description>Demo project for Spring Boot + Angular Microservices</description>
     <url/>
