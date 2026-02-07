@@ -189,7 +189,7 @@ pipeline {
                         script {
                             sh """
                                 echo "Logging into Nexus Docker registry..."
-                                echo admin | docker login \${NEXUS_REGISTRY} --username-stdin --password-stdin
+                                docker login ${NEXUS_REGISTRY} -u admin -p 123456
                                 echo "Docker login successful"
                             """
                         }
