@@ -30,7 +30,7 @@
     <repositories>
         <repository>
             <id>nexus-public</id>
-            <url>http://localhost:8081/repository/maven-public/</url>
+            <url>http://localhost:8083/repository/maven-public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
